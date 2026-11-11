@@ -2,9 +2,14 @@
   "extends": "@diplodoc/infra/tsconfig.json",
   "compilerOptions": {
     "target": "es2022",
-    "module": "es2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "rootDir": "./src",
+    "outDir": "./build",
     "declaration": true,
-    "moduleResolution": "bundler"
+    "allowJs": false,
+    "types": ["node"]
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.spec.ts"]
 }
