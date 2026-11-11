@@ -1,0 +1,59 @@
+# Diplodoc Dependabot configuration
+# https://docs.github.com/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+#
+# Native cooldown settings enforce release age. Schedule cadence is not a
+# substitute for cooldown. Security updates are evaluated independently and
+# are not delayed by these version-update cooldowns.
+#
+# Development-tool patch/minor updates may be grouped. Runtime dependencies and
+# major updates stay in individual pull requests for isolated review/rollback.
+# Ignore entries are generated from dependency-policy.yml.
+
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Europe/Moscow'
+    cooldown:
+      semver-patch-days: 3
+      semver-minor-days: 7
+      semver-major-days: 30
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+      - 'dependabot'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
+    groups:
+      eslint-prettier:
+        dependency-type: 'development'
+        patterns: ['eslint', 'eslint-*', 'prettier', 'prettier-*']
+        update-types: ['minor', 'patch']
+      vitest-coverage:
+        dependency-type: 'development'
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
+          - '@istanbuljs/*'
+          - 'nyc'
+          - 'istanbul-lib-*'
+          - 'istanbul-reports'
+        update-types: ['minor', 'patch']
+      typescript-types:
+        dependency-type: 'development'
+        patterns: ['typescript', '@types/*']
+        update-types: ['minor', 'patch']
+      storybook:
+        dependency-type: 'development'
+        patterns: ['storybook', '@storybook/*']
+        update-types: ['minor', 'patch']
+      playwright:
+        dependency-type: 'development'
+        patterns: ['playwright', 'playwright-core', '@playwright/*']
+        update-types: ['minor', 'patch']
+    # (no registry-based ignores for this repo)
