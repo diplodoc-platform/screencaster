@@ -1,0 +1,9 @@
+exclude:
+  - path: .eslintrc.js
+    reason: 'ESM package uses the existing .eslintrc.cjs configuration.'
+  - path: .prettierrc.js
+    reason: 'ESM package uses the existing .prettierrc.cjs configuration.'
+  - path: .lintstagedrc.js
+    reason: 'ESM package uses .lintstagedrc.cjs with matching config filenames.'
+  - path: .stylelintrc.js
+    reason: 'ESM package uses .stylelintrc.cjs.'

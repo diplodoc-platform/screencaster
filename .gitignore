@@ -1,17 +1,7 @@
-.idea
-.vscode
-.history
+node_modules
+/build
+/coverage
 .env
 .DS_Store
-
-node_modules
-/lib
-/dist
-/build
-/cache
-/coverage
-/external
-
-# libraries
-npm-debug.log
 *.log
+*.tgz

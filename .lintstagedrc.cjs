@@ -22,10 +22,10 @@ module.exports = {
     '**/*.{js,mjs,cjs,jsx,ts,mts,cts,tsx}': (filenames) => {
         // Filter out config files
         const configFiles = [
-            '.lintstagedrc.js',
-            '.eslintrc.js',
-            '.prettierrc.js',
-            '.stylelintrc.js',
+            '.lintstagedrc.cjs',
+            '.eslintrc.cjs',
+            '.prettierrc.cjs',
+            '.stylelintrc.cjs',
             'prettier-common-config.js',
         ];
         const filtered = filenames.filter(
@@ -43,8 +43,8 @@ module.exports = {
             `env ESLINT_USE_FLAT_CONFIG=false npx eslint --max-warnings=0 --fix`,
         ];
     },
-    // Handle .lintstagedrc.js separately (only prettier, no eslint)
-    '.lintstagedrc.js': (filenames) => filenames.map((f) => `prettier --write ${f}`),
+    // Handle .lintstagedrc.cjs separately (only prettier, no eslint)
+    '.lintstagedrc.cjs': (filenames) => filenames.map((f) => `prettier --write ${f}`),
     '**/*.{css,scss}': (filenames) => [
         `prettier --write ${filenames.join(' ')}`,
         `stylelint --fix ${filenames.join(' ')}`,
