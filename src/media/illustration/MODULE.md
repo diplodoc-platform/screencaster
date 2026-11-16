@@ -1,7 +1,8 @@
 # Illustration production
 
 This capability reads local PNG/JPEG files and performs deterministic local raster
-processing through Sharp. It never opens a browser, fetches a URL or runs caller
+processing through the shared PNG/JPEG raster helpers. Canvas draws overlays and
+resizes previews; production crops copy source RGBA pixels directly. It never opens a browser, fetches a URL or runs caller
 code. Crop, annotation and `bbox` coordinates are physical source-image pixels;
 `viewport` dimensions are CSS pixels and `dpr` records their conversion. Each
 localized input has independent geometry.

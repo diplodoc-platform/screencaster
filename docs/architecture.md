@@ -104,7 +104,7 @@ The runtime refuses DOM-redacted screenshot capture combined with raw video;
 a separately sanitized fixture is required for video.
 
 A clean original means the unannotated **post-redaction** PNG. Highlighting uses
-the generic local Sharp renderer in `shared/image-renderer.ts`, retains that
+the generic local raster renderer in `shared/image-renderer.ts`, retains that
 original and registers a derived PNG linked by source path/SHA-256. It does not
 open a second browser context. Model attachment resizing is local too and never
 rewrites production artifacts.

@@ -109,10 +109,10 @@ export function sanitizeSnapshotForModel(snapshot: string): string {
     return lines
         .map((line, index) => {
             const role =
-                line.match(INPUT_VALUE_NODE_PATTERN) ??
-                (editableParagraphs.has(index) ? line.match(PARAGRAPH_NODE_PATTERN) : null);
+                INPUT_VALUE_NODE_PATTERN.exec(line) ??
+                (editableParagraphs.has(index) ? PARAGRAPH_NODE_PATTERN.exec(line) : null);
             if (!role) {
-                const value = line.match(INPUT_VALUE_PREFIX_PATTERN);
+                const value = INPUT_VALUE_PREFIX_PATTERN.exec(line);
                 if (inInputField && value) {
                     return `${value[1]} [REDACTED]`;
                 }
@@ -122,21 +122,8 @@ export function sanitizeSnapshotForModel(snapshot: string): string {
                 return line;
             }
             inInputField = true;
-            let afterLabel = role[0].length;
-            const refStart = line.indexOf('[ref=', afterLabel);
-            if (refStart === -1) {
-                const nameStart = line.indexOf('"', afterLabel);
-                const nameEnd = nameStart === -1 ? -1 : line.indexOf('"', nameStart + 1);
-                if (nameEnd !== -1) {
-                    afterLabel = nameEnd + 1;
-                }
-            } else {
-                const refEnd = line.indexOf(']', refStart);
-                if (refEnd !== -1) {
-                    afterLabel = refEnd + 1;
-                }
-            }
-            const separator = line.slice(afterLabel).match(INPUT_VALUE_SEPARATOR_PATTERN);
+            const afterLabel = inputLabelEnd(line, role[0].length);
+            const separator = INPUT_VALUE_SEPARATOR_PATTERN.exec(line.slice(afterLabel));
             if (!separator || separator.index === undefined) {
                 return line;
             }
@@ -170,4 +157,23 @@ function sanitizeStructuredValue(
 
 export function sanitizeToolResultForModel(input: string): string {
     return sanitizeSnapshotForModel(input);
+}
+
+function inputLabelEnd(line: string, offset: number) {
+    let afterLabel = offset;
+    const refStart = line.indexOf('[ref=', afterLabel);
+    if (refStart === -1) {
+        const nameStart = line.indexOf('"', afterLabel);
+        const nameEnd = nameStart === -1 ? -1 : line.indexOf('"', nameStart + 1);
+        if (nameEnd !== -1) {
+            afterLabel = nameEnd + 1;
+        }
+    } else {
+        const refEnd = line.indexOf(']', refStart);
+        if (refEnd !== -1) {
+            afterLabel = refEnd + 1;
+        }
+    }
+
+    return afterLabel;
 }

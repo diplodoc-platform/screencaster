@@ -1,5 +1,4 @@
-import sharp from 'sharp';
-
+import {compositeRaster, decodeRaster, drawRaster, encodePng, rasterMetadata} from './raster.js';
 import {
     IMAGE_GEOMETRY_SCALE_TOLERANCE,
     IMAGE_OUTLINE_COLOR,
@@ -40,7 +39,7 @@ export async function renderScreenshotHighlight(
     ) {
         throw new Error(INVALID_IMAGE_GEOMETRY);
     }
-    const metadata = await sharp(png, {limitInputPixels: MAX_IMAGE_PIXELS}).metadata();
+    const metadata = rasterMetadata(png);
     if (
         metadata.format !== 'png' ||
         metadata.width !== pixelWidth ||
@@ -65,14 +64,14 @@ export async function renderScreenshotHighlight(
     ) {
         throw new Error(INVALID_IMAGE_GEOMETRY);
     }
-    const overlay = Buffer.from(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="${pixelWidth}" height="${pixelHeight}">` +
-            `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="none" ` +
-            `stroke="${IMAGE_OUTLINE_COLOR}" stroke-width="${IMAGE_OUTLINE_WIDTH_CSS_PX * sx}" ` +
-            `rx="${IMAGE_OUTLINE_RADIUS_CSS_PX * sx}"/></svg>`,
-    );
-    return sharp(png, {limitInputPixels: MAX_IMAGE_PIXELS})
-        .composite([{input: overlay}])
-        .png()
-        .toBuffer();
+    const overlay = drawRaster(pixelWidth, pixelHeight, (context) => {
+        context.strokeStyle = IMAGE_OUTLINE_COLOR;
+        context.lineWidth = IMAGE_OUTLINE_WIDTH_CSS_PX * sx;
+        context.beginPath();
+        context.roundRect(x, y, width, height, IMAGE_OUTLINE_RADIUS_CSS_PX * sx);
+        context.stroke();
+    });
+    const image = decodeRaster(png);
+    compositeRaster(image, overlay);
+    return encodePng(image);
 }

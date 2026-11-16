@@ -68,7 +68,7 @@ export class BrowserContextGuard {
                 )) as McpResult;
                 state =
                     result && !result.isError
-                        ? extractText(result).match(GUARD_STATE_PATTERN)?.[1]
+                        ? GUARD_STATE_PATTERN.exec(extractText(result))?.[1]
                         : undefined;
             } catch {
                 // Context teardown may still be settling. Only this read-only probe is retried.

@@ -3,9 +3,9 @@ import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 import {createHash} from 'node:crypto';
-import sharp from 'sharp';
 import {afterEach, expect, it, vi} from 'vitest';
 
+import {solidPng} from '../../../fixtures/images.js';
 import {
     type ScreenshotAccess,
     captureScreenshot,
@@ -23,9 +23,7 @@ afterEach(async () => {
 async function fixture() {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'capture-file-test-'));
     directories.push(directory);
-    const png = await sharp({create: {width: 100, height: 80, channels: 4, background: '#ffffff'}})
-        .png()
-        .toBuffer();
+    const png = await solidPng(100, 80, '#ffffff');
     const target = {
         count: async () => 1,
         scrollIntoViewIfNeeded: async () => {},

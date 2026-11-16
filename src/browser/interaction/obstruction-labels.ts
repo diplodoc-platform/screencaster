@@ -28,20 +28,7 @@ export function obstructionSnapshotLabels(snapshot: string): string[] {
         if (excluded || !OBSTRUCTION_LABEL_ROLE_PATTERN.test(node.role)) {
             continue;
         }
-        const line = lines[node.index].trim();
-        const quoted = line.match(QUOTED_NODE_LABEL_PATTERN)?.[1];
-        let label: string | undefined;
-        try {
-            if (quoted) {
-                label = quoted.startsWith('"')
-                    ? JSON.parse(quoted)
-                    : quoted.slice(1, -1).replace(YAML_ESCAPED_SINGLE_QUOTE_PATTERN, "'");
-            } else {
-                label = line.match(PLAIN_NODE_LABEL_PATTERN)?.[1];
-            }
-        } catch {
-            continue;
-        }
+        const label = readLabel(lines[node.index].trim());
         if (
             label &&
             label.length <= MAX_LABEL_CHARS &&
@@ -55,6 +42,18 @@ export function obstructionSnapshotLabels(snapshot: string): string[] {
         }
     }
     return [...labels];
+}
+
+function readLabel(line: string): string | undefined {
+    const quoted = QUOTED_NODE_LABEL_PATTERN.exec(line)?.[1];
+    if (!quoted) return PLAIN_NODE_LABEL_PATTERN.exec(line)?.[1];
+    try {
+        return quoted.startsWith('"')
+            ? JSON.parse(quoted)
+            : quoted.slice(1, -1).replace(YAML_ESCAPED_SINGLE_QUOTE_PATTERN, "'");
+    } catch {
+        return undefined;
+    }
 }
 
 // Executed only inside an existing trusted hit-test. No DOM text leaves the page

@@ -51,7 +51,7 @@ export function backgroundClickRef(args: Record<string, unknown>, snapshot: stri
     const parsed = backgroundClickArgs.safeParse(args);
     const targets = parsed.success
         ? snapshotNodes(sanitizeSnapshotForModel(snapshot).split('\n')).filter(
-              (node) => node.attributes.match(REF_ATTRIBUTE_PATTERN)?.[1] === parsed.data.ref,
+              (node) => REF_ATTRIBUTE_PATTERN.exec(node.attributes)?.[1] === parsed.data.ref,
           )
         : [];
     if (!parsed.success || targets.length !== 1 || !structuralRoles.includes(targets[0].role)) {
@@ -66,7 +66,7 @@ export function backgroundClickRef(args: Record<string, unknown>, snapshot: stri
 export function backgroundClickCandidates(snapshot: string, ref: string): string[] {
     const nodes = snapshotNodes(sanitizeSnapshotForModel(snapshot).split('\n'));
     const refOf = (node: (typeof nodes)[number]) =>
-        node.attributes.match(REF_ATTRIBUTE_PATTERN)?.[1];
+        REF_ATTRIBUTE_PATTERN.exec(node.attributes)?.[1];
     const counts = new Map<string, number>();
     for (const node of nodes) {
         const value = refOf(node);
@@ -99,7 +99,7 @@ export function backgroundClickCandidates(snapshot: string, ref: string): string
 export function backgroundAncestorRefs(snapshot: string, ref: string): string[] {
     const nodes = snapshotNodes(sanitizeSnapshotForModel(snapshot).split('\n'));
     const refOf = (node: (typeof nodes)[number]) =>
-        node.attributes.match(REF_ATTRIBUTE_PATTERN)?.[1];
+        REF_ATTRIBUTE_PATTERN.exec(node.attributes)?.[1];
     const matching = nodes.filter((node) => refOf(node) === ref);
     if (matching.length !== 1) {
         return [];
@@ -180,7 +180,7 @@ const resultSchema = z.discriminatedUnion('state', [
 
 export function backgroundClickResult(result: McpResult, candidateRefs: string[] = []): string {
     const text = extractText(result);
-    const payload = text.match(MCP_RESULT_BLOCK_PATTERN)?.[1];
+    const payload = MCP_RESULT_BLOCK_PATTERN.exec(text)?.[1];
     if (!result || result.isError || !payload || payload.length > MAX_BACKGROUND_REPLY_CHARS) {
         throw new Error(BACKGROUND_CLICK_OUTCOME_UNAVAILABLE_ACTION_MUST_NOT_BE);
     }
@@ -240,7 +240,7 @@ export function backgroundAncestorInspectionResult(
         if (!result || result.isError) {
             return [];
         }
-        const payload = extractText(result).match(MCP_RESULT_BLOCK_PATTERN)?.[1];
+        const payload = MCP_RESULT_BLOCK_PATTERN.exec(extractText(result))?.[1];
         if (!payload || payload.length > MAX_BACKGROUND_REPLY_CHARS) {
             return [];
         }

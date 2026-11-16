@@ -48,7 +48,7 @@ function controlUiOperation(snapshot: string, ref?: string): UiOperation {
         return 'unknown';
     }
     let attributes: Record<string, unknown> = {};
-    const observed = lines[node.index].match(DOM_ATTRIBUTES_ANNOTATION_PATTERN)?.[1];
+    const observed = DOM_ATTRIBUTES_ANNOTATION_PATTERN.exec(lines[node.index])?.[1];
     try {
         attributes = observed ? JSON.parse(observed) : {};
     } catch {

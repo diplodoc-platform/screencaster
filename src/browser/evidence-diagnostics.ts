@@ -146,7 +146,7 @@ export function decodeEvidenceObservation(
     }
     let payload: string | undefined;
     try {
-        payload = extractText(result).match(MCP_RESULT_BLOCK_PATTERN)?.[1];
+        payload = MCP_RESULT_BLOCK_PATTERN.exec(extractText(result))?.[1];
     } catch {
         throw new EvidenceObservationError('malformed-result');
     }

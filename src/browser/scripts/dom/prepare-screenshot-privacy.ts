@@ -175,29 +175,33 @@ function sanitize(policy: PreparedScreenshotCapturePolicy) {
         });
     }
     for (const element of elements) {
-        for (const attribute of CAPTURE_REDACTION_ATTRIBUTES) {
-            const original = element.getAttribute(attribute);
-            if (original !== null) {
-                const updated = replace(original, replacements);
-                if (original !== updated) {
-                    element.setAttribute(attribute, updated);
-                }
-            }
-        }
-        const originalValue = nativeValue(element);
-        if (originalValue !== undefined) {
-            const updated = replace(originalValue, replacements);
-            if (originalValue !== updated) {
-                const descriptor = nativeValueDescriptor(element);
-                if (!descriptor?.set) {
-                    throw new Error(SCREENSHOT_PRIVACY_FAILED);
-                }
-                // Bypass instance accessors and emit no events: a presentation change never submits data.
-                descriptor.set.call(element, updated);
+        sanitizeElement(element, replacements);
+    }
+    return {roots, elements};
+}
+
+function sanitizeElement(element: Element, replacements: Parameters<typeof replace>[1]) {
+    for (const attribute of CAPTURE_REDACTION_ATTRIBUTES) {
+        const original = element.getAttribute(attribute);
+        if (original !== null) {
+            const updated = replace(original, replacements);
+            if (original !== updated) {
+                element.setAttribute(attribute, updated);
             }
         }
     }
-    return {roots, elements};
+    const originalValue = nativeValue(element);
+    if (originalValue !== undefined) {
+        const updated = replace(originalValue, replacements);
+        if (originalValue !== updated) {
+            const descriptor = nativeValueDescriptor(element);
+            if (!descriptor?.set) {
+                throw new Error(SCREENSHOT_PRIVACY_FAILED);
+            }
+            // Bypass instance accessors and emit no events: a presentation change never submits data.
+            descriptor.set.call(element, updated);
+        }
+    }
 }
 
 function normalizedVisibleText(value: string): string {
@@ -232,38 +236,40 @@ function composedVisibleText(root: ParentNode): string {
             return;
         }
         if (node instanceof Element) {
-            const style = getComputedStyle(node);
-            if (
-                !node.isConnected ||
-                style.display === 'none' ||
-                style.opacity === '0' ||
-                ['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(node.tagName)
-            ) {
-                return;
-            }
-            const block = CAPTURE_BLOCK_DISPLAY_PATTERN.test(style.display);
-            if (block) {
-                append('\n');
-            }
-            append(positionedPseudoText(node, false));
-            const assigned =
-                node instanceof HTMLSlotElement ? node.assignedNodes({flatten: true}) : [];
-            const children = assigned.length
-                ? assigned
-                : (node.shadowRoot?.childNodes ?? node.childNodes);
-            for (const child of children) {
-                visit(child);
-            }
-            append(positionedPseudoText(node, true));
-            if (block) {
-                append('\n');
-            }
+            visitElement(node);
             return;
         }
         for (const child of node.childNodes) {
             visit(child);
         }
     };
+    function visitElement(node: Element) {
+        const style = getComputedStyle(node);
+        if (
+            !node.isConnected ||
+            style.display === 'none' ||
+            style.opacity === '0' ||
+            ['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(node.tagName)
+        ) {
+            return;
+        }
+        const block = CAPTURE_BLOCK_DISPLAY_PATTERN.test(style.display);
+        if (block) {
+            append('\n');
+        }
+        append(positionedPseudoText(node, false));
+        const assigned = node instanceof HTMLSlotElement ? node.assignedNodes({flatten: true}) : [];
+        const children = assigned.length
+            ? assigned
+            : (node.shadowRoot?.childNodes ?? node.childNodes);
+        for (const child of children) {
+            visit(child);
+        }
+        append(positionedPseudoText(node, true));
+        if (block) {
+            append('\n');
+        }
+    }
     visit(root as Node);
     return fragments.join('');
 }

@@ -2,7 +2,7 @@ import {GEOMETRY_DECIMAL_SCALE, MAX_GEOMETRY_MAGNITUDE} from '../config.js';
 import {UNAVAILABLE_GEOMETRY} from '../messages.js';
 import {CLIPPING_OVERFLOW_PATTERN, SCROLLABLE_OVERFLOW_PATTERN} from '../patterns.js';
 
-export default (el: SVGElement | HTMLElement) => {
+export default function measureScrollPosition(el: SVGElement | HTMLElement) {
     const parents = scrollAncestors(el);
     const clips = (value: string) => CLIPPING_OVERFLOW_PATTERN.test(value);
     const viewport = () => ({
@@ -204,7 +204,7 @@ export default (el: SVGElement | HTMLElement) => {
             }
         },
     };
-};
+}
 
 function scrollAncestors(el: Element): Element[] {
     const parents: Element[] = [];

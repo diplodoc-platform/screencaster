@@ -210,24 +210,7 @@ export async function optimizeVideo(options: {
             holds.has(frame) ? Math.ceil(source.fps * TARGET_HOLD_SECONDS) : 1,
             frame === bounds.end - 1 ? Math.ceil(source.fps * FINAL_FRAME_HOLD_SECONDS) : 1,
         );
-    let outputCount = 0;
-    for (let frame = bounds.start; frame < bounds.end; frame++) {
-        if (retained[frame]) {
-            outputCount += repetitions(frame);
-        }
-    }
-    if (outputCount > MAX_FRAMES) {
-        throw new Error(INVALID_RETAINED_FRAME_SEQUENCE);
-    }
-    const frameRefs = new Uint32Array(outputCount);
-    let offset = 0;
-    for (let frame = bounds.start; frame < bounds.end; frame++) {
-        if (retained[frame]) {
-            const end = offset + repetitions(frame);
-            frameRefs.fill(frame, offset, end);
-            offset = end;
-        }
-    }
+    const frameRefs = repeatedFrameRefs(retained, bounds, repetitions);
     const video = path.join(output, 'video.webm');
     const rendered = await renderMappedVideo({
         input: raw,
@@ -289,4 +272,30 @@ export async function optimizeVideo(options: {
         );
     }
     return timeline;
+}
+
+function repeatedFrameRefs(
+    retained: Uint8Array,
+    bounds: FrameRange,
+    repetitions: (frame: number) => number,
+) {
+    let outputCount = 0;
+    for (let frame = bounds.start; frame < bounds.end; frame++) {
+        if (retained[frame]) {
+            outputCount += repetitions(frame);
+        }
+    }
+    if (outputCount > MAX_FRAMES) {
+        throw new Error(INVALID_RETAINED_FRAME_SEQUENCE);
+    }
+    const frameRefs = new Uint32Array(outputCount);
+    let offset = 0;
+    for (let frame = bounds.start; frame < bounds.end; frame++) {
+        if (retained[frame]) {
+            const end = offset + repetitions(frame);
+            frameRefs.fill(frame, offset, end);
+            offset = end;
+        }
+    }
+    return frameRefs;
 }

@@ -71,7 +71,7 @@ export function parseInputEvidence(
     text: string,
     expectations: InputExpectation[],
 ): InputEvidence[] {
-    const payload = text.match(MCP_RESULT_BLOCK_PATTERN)?.[1];
+    const payload = MCP_RESULT_BLOCK_PATTERN.exec(text)?.[1];
     const observations = observationSchema.parse(JSON.parse(payload ?? 'null'));
     if (
         observations.length !== expectations.length ||

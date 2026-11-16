@@ -2,7 +2,7 @@
 
 Browser capture and illustration production have separate contracts. Capture
 returns the original device-pixel PNG and measured viewport/DPR/bounds. The local
-Sharp pipeline crops and decorates PNG/JPEG, makes panels/collages/contact sheets,
+raster pipeline crops and decorates PNG/JPEG, makes panels/collages/contact sheets,
 and prepares local YFM markup without opening a browser or making network calls.
 Production panels are never resampled. Only an inspection preview may be reduced.
 

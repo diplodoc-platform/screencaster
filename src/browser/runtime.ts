@@ -476,7 +476,7 @@ export class BrowserRuntime {
         const result = await this.client.callTool('browser_run_code', {
             code: driverScript('check-request-guard'),
         });
-        const healthy = extractText(result as McpResult).match(REQUEST_GUARD_HEALTH_RESULT_PATTERN);
+        const healthy = REQUEST_GUARD_HEALTH_RESULT_PATTERN.exec(extractText(result as McpResult));
         if (healthy) {
             this.requestGuardObservation = healthy.slice(1).some((count) => Number(count) > 0)
                 ? '\n' +
@@ -494,8 +494,8 @@ export class BrowserRuntime {
                   'requested content normally.'
                 : '';
         } else {
-            const diagnostic = extractText(result as McpResult).match(
-                REQUEST_GUARD_FAILURE_RESULT_PATTERN,
+            const diagnostic = REQUEST_GUARD_FAILURE_RESULT_PATTERN.exec(
+                extractText(result as McpResult),
             );
             throw new Error(
                 'Read-only network guard failed; request aborted (HTTP details withheld)' +
@@ -646,14 +646,7 @@ export class BrowserRuntime {
             throw new ToolDispatchRejectedError(CONCURRENT_BROWSER_ACTION);
         }
         this.contextGuard.assertKnownContext();
-        const validator = this.validators.get(name);
-        const custom =
-            name === 'browser_snapshot' ||
-            name === 'browser_verify_inputs' ||
-            (name === 'browser_click' && args.targetArea !== undefined);
-        if (!custom && validator && !validator(args)) {
-            throw new ToolDispatchRejectedError('Invalid native browser tool arguments');
-        }
+        this.validateModelArguments(name, args);
         this.modelCallActive = true;
         this.actionBeforeSnapshot = this.lastSnapshot;
         this.activities = [];
@@ -707,12 +700,18 @@ export class BrowserRuntime {
             return null;
         }
     }
-    protected async afterStart(): Promise<void> {}
-    protected async beforeClose(): Promise<void> {}
+    protected async afterStart(): Promise<void> {
+        // Optional lifecycle hook for host-specific runtime subclasses.
+    }
+    protected async beforeClose(): Promise<void> {
+        // Optional lifecycle hook; the base runtime owns the actual cleanup.
+    }
     protected async checkPageContext(raw: string, _attempt: number): Promise<string | undefined> {
         return raw;
     }
-    protected verifyApplicationUrl(_url: string): void {}
+    protected verifyApplicationUrl(_url: string): void {
+        // Subclasses may impose application-specific checks beyond the browser policy.
+    }
     protected isPageCheckError(_error: unknown): boolean {
         return false;
     }
@@ -923,7 +922,7 @@ export class BrowserRuntime {
         const result = (await this.client.callTool('browser_run_code', {
             code: observerScript(code),
         })) as McpResult;
-        const payload = extractText(result).match(MCP_RESULT_LINE_PATTERN)?.[1];
+        const payload = MCP_RESULT_LINE_PATTERN.exec(extractText(result))?.[1];
         if (!result || result.isError || !payload) {
             throw new Error(BROWSER_OBSERVATION_UNAVAILABLE);
         }
@@ -948,7 +947,7 @@ export class BrowserRuntime {
                 await this.contextGuard.check();
                 const result = await this.internal(driverScript('read-recording-path'));
                 const file: unknown = JSON.parse(
-                    extractText(result).match(MCP_RESULT_LINE_PATTERN)?.[1] ?? 'null',
+                    MCP_RESULT_LINE_PATTERN.exec(extractText(result))?.[1] ?? 'null',
                 );
                 if (result?.isError) {
                     throw new Error(RECORDING_IDENTITY_UNAVAILABLE);
@@ -988,6 +987,17 @@ export class BrowserRuntime {
                 failures,
                 'Browser finalization failed; raw recordings retained',
             );
+        }
+    }
+
+    private validateModelArguments(name: string, args: Record<string, unknown>) {
+        const validator = this.validators.get(name);
+        const custom =
+            name === 'browser_snapshot' ||
+            name === 'browser_verify_inputs' ||
+            (name === 'browser_click' && args.targetArea !== undefined);
+        if (!custom && validator && !validator(args)) {
+            throw new ToolDispatchRejectedError('Invalid native browser tool arguments');
         }
     }
 
@@ -1044,7 +1054,16 @@ export class BrowserRuntime {
             return helper();
         }
 
-        const ref = args.ref !== undefined && args.ref !== null ? String(args.ref) : undefined;
+        return this.dispatchModelInteraction(name, args, currentSnapshot, onImage);
+    }
+
+    private async dispatchModelInteraction(
+        name: string,
+        args: Record<string, unknown>,
+        currentSnapshot: string,
+        onImage?: (image: BrowserImage) => void,
+    ) {
+        const ref = typeof args.ref === 'string' ? args.ref : undefined;
         const preparedTarget = await this.prepareToolInteraction(name, args, currentSnapshot, ref);
         const target = preparedTarget.mediaTarget;
 
@@ -1265,30 +1284,8 @@ export class BrowserRuntime {
             }
             raw = checked;
             this.policy.assertUrl(extractUrlFromSnapshot(raw), 'read');
-            const refs = [...raw.matchAll(DIALOG_REF_PATTERN)].map((match) => match[1]);
-            let modalRefs: string[] = [];
-            if (refs.length) {
-                const result = extractText(
-                    (await this.client.callTool('browser_run_code', {
-                        code: driverScript('read-modal-dialogs', {refs: refs}),
-                    })) as McpResult,
-                );
-                const payload = result.match(MCP_RESULT_BLOCK_PATTERN)?.[1];
-                const parsed: unknown = JSON.parse(payload ?? '{}');
-                if (parsed === null) {
-                    // The page may remove a dialog while identity checks run.
-                    // Refresh observations once, including policy and identity;
-                    // never replay the action that caused the transition.
-                    continue;
-                }
-                if (
-                    !Array.isArray(parsed) ||
-                    parsed.some((ref) => typeof ref !== 'string' || !refs.includes(ref))
-                ) {
-                    throw new Error(CANNOT_DETERMINE_MODAL_DIALOG_STATE);
-                }
-                modalRefs = parsed;
-            }
+            const modalRefs = await this.readModalRefs(raw);
+            if (modalRefs === null) continue;
             const ui = filterTopmostDialog(raw, modalRefs);
             const snapshot = await addControlHints(
                 ui.snapshot,
@@ -1307,6 +1304,35 @@ export class BrowserRuntime {
             };
         }
         throw new Error(PAGE_KEPT_CHANGING_WHILE_INSPECTING_DIALOGS_A_STABLE);
+    }
+
+    private async readModalRefs(raw: string): Promise<string[] | null> {
+        const refs = [...raw.matchAll(DIALOG_REF_PATTERN)].map((match) => match[1]);
+        let modalRefs: string[] = [];
+        if (refs.length) {
+            const result = extractText(
+                (await this.client.callTool('browser_run_code', {
+                    code: driverScript('read-modal-dialogs', {refs: refs}),
+                })) as McpResult,
+            );
+            const payload = MCP_RESULT_BLOCK_PATTERN.exec(result)?.[1];
+            const parsed: unknown = JSON.parse(payload ?? '{}');
+            if (parsed === null) {
+                // The page may remove a dialog while identity checks run.
+                // Refresh observations once, including policy and identity;
+                // never replay the action that caused the transition.
+                return null;
+            }
+            if (
+                !Array.isArray(parsed) ||
+                parsed.some((ref) => typeof ref !== 'string' || !refs.includes(ref))
+            ) {
+                throw new Error(CANNOT_DETERMINE_MODAL_DIALOG_STATE);
+            }
+            modalRefs = parsed;
+        }
+
+        return modalRefs;
     }
 
     private requiresPageSnapshot(name: string): boolean {
@@ -1374,37 +1400,43 @@ export class BrowserRuntime {
                     'Form fill target has no reference; no form fields were dispatched',
                 );
             }
-            let state: unknown;
-            try {
-                const inspected = (await this.client.callTool('browser_evaluate', {
-                    function: FORM_FILL_PREFLIGHT_JS,
-                    ref,
-                })) as McpResult;
-                const payload = extractText(inspected).match(MCP_LEADING_RESULT_LINE_PATTERN)?.[1];
-                state = JSON.parse(payload ?? 'null');
-                if (
-                    typeof state !== 'string' ||
-                    !['fillable', 'not-fillable', 'not-editable', 'unavailable'].includes(state)
-                ) {
-                    throw new Error(UNRECOGNIZED_FORM_FILL_INSPECTION_RESULT);
-                }
-            } catch (error) {
-                if (
-                    this.isPageCheckError(error) ||
-                    (error instanceof Error && error.name === 'AbortError')
-                ) {
-                    throw error;
-                }
-                throw new ToolDispatchRejectedError(
-                    `Form fill inspection failed before any field dispatch: ${sanitizeForModel(error instanceof Error ? error.message : 'Unknown inspection error')}`,
-                );
-            }
+            const state = await this.inspectFormFillTarget(ref);
             if (state !== 'fillable') {
                 throw new ToolDispatchRejectedError(
                     `Form target ref=${ref} is ${state}; no form fields were dispatched. Use an observed editable field. If it needs editing mode, activate its observed control and obtain a fresh field reference.`,
                 );
             }
         }
+    }
+
+    private async inspectFormFillTarget(ref: string) {
+        let state: unknown;
+        try {
+            const inspected = (await this.client.callTool('browser_evaluate', {
+                function: FORM_FILL_PREFLIGHT_JS,
+                ref,
+            })) as McpResult;
+            const payload = MCP_LEADING_RESULT_LINE_PATTERN.exec(extractText(inspected))?.[1];
+            state = JSON.parse(payload ?? 'null');
+            if (
+                typeof state !== 'string' ||
+                !['fillable', 'not-fillable', 'not-editable', 'unavailable'].includes(state)
+            ) {
+                throw new Error(UNRECOGNIZED_FORM_FILL_INSPECTION_RESULT);
+            }
+        } catch (error) {
+            if (
+                this.isPageCheckError(error) ||
+                (error instanceof Error && error.name === 'AbortError')
+            ) {
+                throw error;
+            }
+            throw new ToolDispatchRejectedError(
+                `Form fill inspection failed before any field dispatch: ${sanitizeForModel(error instanceof Error ? error.message : 'Unknown inspection error')}`,
+            );
+        }
+
+        return state;
     }
 
     private async dispatchFormFields(fields: unknown[]) {
@@ -1419,26 +1451,7 @@ export class BrowserRuntime {
                     ? field.ref
                     : undefined;
             try {
-                if (
-                    ref &&
-                    field &&
-                    typeof field === 'object' &&
-                    'type' in field &&
-                    field.type === 'textbox' &&
-                    'value' in field
-                ) {
-                    results.push(await this.dispatchTextInput(ref, {text: field.value}));
-                } else {
-                    const target = ref
-                        ? (await this.prepareActionTarget(ref)).mediaTarget
-                        : undefined;
-                    const filled = await this.dispatchRecordedTool(
-                        'browser_fill_form',
-                        {fields: [field]},
-                        target,
-                    );
-                    results.push(extractText(filled));
-                }
+                results.push(await this.dispatchFormField(field, ref));
             } catch (error) {
                 if (
                     results.length &&
@@ -1451,6 +1464,27 @@ export class BrowserRuntime {
             }
         }
         return this.observeToolReply('browser_fill_form', results.join('\n'));
+    }
+
+    private async dispatchFormField(field: unknown, ref: string | undefined) {
+        if (
+            ref &&
+            field &&
+            typeof field === 'object' &&
+            'type' in field &&
+            field.type === 'textbox' &&
+            'value' in field
+        ) {
+            return this.dispatchTextInput(ref, {text: field.value});
+        } else {
+            const target = ref ? (await this.prepareActionTarget(ref)).mediaTarget : undefined;
+            const filled = await this.dispatchRecordedTool(
+                'browser_fill_form',
+                {fields: [field]},
+                target,
+            );
+            return extractText(filled);
+        }
     }
 
     private notifyMediaActivity(activity?: MediaActivity) {
@@ -1648,7 +1682,7 @@ export class BrowserRuntime {
         if (!result || result.isError) {
             throw new Error(GENERATED_PASSWORD_WAS_NOT_FILLED_IN_AN_EDITABLE);
         }
-        const payload = extractText(result).match(MCP_ANYWHERE_RESULT_BLOCK_PATTERN)?.[1];
+        const payload = MCP_ANYWHERE_RESULT_BLOCK_PATTERN.exec(extractText(result))?.[1];
         let filled = false;
         try {
             const parsed: unknown = JSON.parse(payload ?? 'null');
@@ -1739,7 +1773,7 @@ export class BrowserRuntime {
             const result = (await this.client.callTool('browser_run_code', {
                 code: driverScript('activate-checkable-control', {ref: ref}),
             })) as McpResult;
-            const payload = extractText(result).match(MCP_ANYWHERE_RESULT_BLOCK_PATTERN)?.[1];
+            const payload = MCP_ANYWHERE_RESULT_BLOCK_PATTERN.exec(extractText(result))?.[1];
             const value: unknown = JSON.parse(payload ?? 'null');
             if (value === false) {
                 return undefined;
@@ -1903,7 +1937,7 @@ export class BrowserRuntime {
         }
         let result: unknown;
         try {
-            const payload = text.match(MCP_LEADING_RESULT_BLOCK_PATTERN)?.[1];
+            const payload = MCP_LEADING_RESULT_BLOCK_PATTERN.exec(text)?.[1];
             result = JSON.parse(payload ?? 'null');
         } catch {
             finish?.('threw');

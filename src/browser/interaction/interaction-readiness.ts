@@ -86,6 +86,29 @@ export async function rejectBlockedInteraction(
     args: Record<string, unknown>,
     observe: ObserveReadiness,
 ): Promise<void> {
+    const targets = interactionTargets(name, args);
+    for (const ref of new Set(targets.map((target) => target.ref))) {
+        if (typeof ref !== 'string' || !ARIA_REF_ARGUMENT_PATTERN.test(ref)) continue;
+        const node = extractSnapshotNode(snapshot, ref);
+        if (!node) continue;
+        const textEntry = targets
+            .filter((target) => target.ref === ref)
+            .every((target) => target.textEntry);
+        if (name === 'browser_click' && nativePointerReadinessApplies(args, node)) {
+            await rejectUnreadyPointer(snapshot, ref, args, observe);
+        } else {
+            const interaction = textEntry ? 'text' : 'other';
+            await rejectBlockedRef(
+                snapshot,
+                ref,
+                name === 'browser_hover' ? 'hover' : interaction,
+                observe,
+            );
+        }
+    }
+}
+
+function interactionTargets(name: string, args: Record<string, unknown>) {
     const targets: Array<{ref: unknown; textEntry: boolean}> = [];
     if (name === 'browser_fill_form' && Array.isArray(args.fields)) {
         for (const field of args.fields) {
@@ -101,29 +124,7 @@ export async function rejectBlockedInteraction(
     ) {
         targets.push({ref: args.ref, textEntry: name === 'browser_type'});
     }
-    for (const ref of new Set(targets.map((target) => target.ref))) {
-        if (
-            typeof ref === 'string' &&
-            ARIA_REF_ARGUMENT_PATTERN.test(ref) &&
-            extractSnapshotNode(snapshot, ref)
-        ) {
-            const textEntry = targets
-                .filter((target) => target.ref === ref)
-                .every((target) => target.textEntry);
-            const node = extractSnapshotNode(snapshot, ref) ?? '';
-            if (name === 'browser_click' && nativePointerReadinessApplies(args, node)) {
-                await rejectUnreadyPointer(snapshot, ref, args, observe);
-            } else {
-                const interaction = textEntry ? 'text' : 'other';
-                await rejectBlockedRef(
-                    snapshot,
-                    ref,
-                    name === 'browser_hover' ? 'hover' : interaction,
-                    observe,
-                );
-            }
-        }
-    }
+    return targets;
 }
 
 function nativePointerReadinessApplies(args: Record<string, unknown>, node: string) {
@@ -155,7 +156,7 @@ async function rejectUnreadyPointer(
         if (result?.isError) {
             return;
         }
-        const payload = extractText(result).match(MCP_RESULT_BLOCK_PATTERN)?.[1];
+        const payload = MCP_RESULT_BLOCK_PATTERN.exec(extractText(result))?.[1];
         if (payload && payload.length <= MAX_READINESS_PAYLOAD_CHARS) {
             const observation = resultSchema.safeParse(JSON.parse(payload));
             if (observation.success) {
@@ -223,7 +224,7 @@ async function rejectBlockedRef(
         if (result?.isError) {
             return;
         }
-        const payload = extractText(result).match(MCP_RESULT_BLOCK_PATTERN)?.[1];
+        const payload = MCP_RESULT_BLOCK_PATTERN.exec(extractText(result))?.[1];
         if (!payload || payload.length > MAX_READINESS_PAYLOAD_CHARS) {
             return;
         }

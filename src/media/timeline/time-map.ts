@@ -45,20 +45,7 @@ export function validateFrameMap(map: FrameMapSegment[]): void {
 
 // A hold repeats one source frame; normal segments retain source frame order.
 export function buildFrameMap(frameRefs: ArrayLike<number>): FrameMapSegment[] {
-    if (!frameRefs.length || frameRefs.length > MAX_FRAMES) {
-        throw new Error(INVALID_SOURCE_FRAME_SEQUENCE);
-    }
-    for (let index = 0; index < frameRefs.length; index++) {
-        const frame = frameRefs[index];
-        if (
-            !Number.isSafeInteger(frame) ||
-            frame < 0 ||
-            frame >= MAX_FRAMES ||
-            (index > 0 && frame < frameRefs[index - 1])
-        ) {
-            throw new Error(INVALID_SOURCE_FRAME_SEQUENCE);
-        }
-    }
+    validateFrameRefs(frameRefs);
     const map: FrameMapSegment[] = [];
     let index = 0;
     while (index < frameRefs.length) {
@@ -143,4 +130,21 @@ export function packedFrameRefs(map: FrameMapSegment[]): Uint32Array {
         }
     }
     return refs;
+}
+
+function validateFrameRefs(frameRefs: ArrayLike<number>): void {
+    if (!frameRefs.length || frameRefs.length > MAX_FRAMES) {
+        throw new Error(INVALID_SOURCE_FRAME_SEQUENCE);
+    }
+    for (let index = 0; index < frameRefs.length; index++) {
+        const frame = frameRefs[index];
+        if (
+            !Number.isSafeInteger(frame) ||
+            frame < 0 ||
+            frame >= MAX_FRAMES ||
+            (index > 0 && frame < frameRefs[index - 1])
+        ) {
+            throw new Error(INVALID_SOURCE_FRAME_SEQUENCE);
+        }
+    }
 }

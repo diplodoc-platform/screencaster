@@ -182,19 +182,9 @@ export function buildAnnotations(options: AnnotationOptions) {
         }
         const omit = (reason: string) =>
             omitted.push({actionId: action.id, step: action.step, reason});
-        if (action.kind !== 'interaction' || action.outcome !== 'returned') {
-            omit('not-a-returned-step-interaction');
-            continue;
-        }
-        if (
-            !options.journal.selectedRecording ||
-            action.target.recording !== options.journal.selectedRecording
-        ) {
-            omit('recording-mismatch');
-            continue;
-        }
-        if (options.layout !== 'playwright-top-left') {
-            omit('layout-unverified');
+        const reason = targetOmissionReason(action, options);
+        if (reason) {
+            omit(reason);
             continue;
         }
         const box = targetVideoBox(
@@ -334,6 +324,17 @@ async function extractPngBatch(
     }
 }
 
+type StepScreenshotFrame = {
+    step?: number;
+    role: 'target' | 'after' | 'documentation';
+    file: string;
+    sourceFrame: number;
+    box?: Box;
+    outlineBox?: Box;
+    scale?: number;
+    actionId?: number;
+};
+
 export async function extractStepScreenshots(
     options: AnnotationOptions & {
         raw: string;
@@ -342,16 +343,7 @@ export async function extractStepScreenshots(
     },
 ) {
     const plan = buildAnnotations(options);
-    const frames: {
-        step?: number;
-        role: 'target' | 'after' | 'documentation';
-        file: string;
-        sourceFrame: number;
-        box?: Box;
-        outlineBox?: Box;
-        scale?: number;
-        actionId?: number;
-    }[] = [];
+    const frames: StepScreenshotFrame[] = [];
     const screenshotOmissions: {step?: number; role: 'target' | 'after'; reason: string}[] = [];
     fs.mkdirSync(options.outDir, {recursive: true, mode: PRIVATE_DIRECTORY_MODE});
     for (const step of options.journal.steps) {
@@ -385,63 +377,24 @@ export async function extractStepScreenshots(
                 action.outcome === 'returned',
         );
         const evidence = observations[observations.length - 1];
-        if (evidence) {
-            const frame = Math.ceil(
-                (evidence.endMs / MILLISECONDS_PER_SECOND -
-                    options.protection.offsetSeconds +
-                    options.protection.uncertaintySeconds) *
-                    options.fps,
-            );
-            const nextAction = activities
-                .filter(
-                    (action) => action.kind === 'interaction' && action.startMs >= evidence.endMs,
-                )
-                .sort((a, b) => a.startMs - b.startMs)[0];
-            const latest =
-                (frame + 1) / options.fps +
-                options.protection.offsetSeconds +
-                options.protection.uncertaintySeconds;
-            const marker = options.protection.markers?.some(
-                (range) => frame >= range.start && frame < range.end,
-            );
-            if (
-                frame >= 0 &&
-                frame < options.sourceFrames &&
-                (!nextAction || latest <= nextAction.startMs / MILLISECONDS_PER_SECOND) &&
-                !marker
-            ) {
-                const file = `${prefix}-after.png`;
-                frames.push({
-                    step: step.id,
-                    role: 'after',
-                    file,
-                    sourceFrame: frame,
-                    actionId: evidence.id,
-                });
-                if (!target) {
-                    const documentation = `${prefix}.png`;
-                    frames.push({
-                        step: step.id,
-                        role: 'documentation',
-                        file: documentation,
-                        sourceFrame: frame,
-                        actionId: evidence.id,
-                    });
-                }
-            } else {
-                screenshotOmissions.push({
-                    step: step.id,
-                    role: 'after',
-                    reason: marker
-                        ? 'fresh-evidence-frame-overlaps-clock-marker'
-                        : 'no-fresh-evidence-frame-before-next-action',
-                });
-            }
-        } else {
+        if (!evidence) {
             screenshotOmissions.push({
                 step: step.id,
                 role: 'after',
                 reason: 'no-returned-evidence-point',
+            });
+            continue;
+        }
+        const {frame, marker, fresh} = evidenceFrame(options, activities, evidence);
+        if (fresh) {
+            appendEvidenceFrames(frames, step.id, prefix, frame, evidence.id, Boolean(target));
+        } else {
+            screenshotOmissions.push({
+                step: step.id,
+                role: 'after',
+                reason: marker
+                    ? 'fresh-evidence-frame-overlaps-clock-marker'
+                    : 'no-fresh-evidence-frame-before-next-action',
             });
         }
     }
@@ -472,4 +425,72 @@ export async function extractStepScreenshots(
     };
     writePrivateJson(path.join(options.outDir, 'annotations.json'), manifest);
     return manifest;
+}
+
+function targetOmissionReason(action: Activity, options: AnnotationOptions): string | undefined {
+    if (action.kind !== 'interaction' || action.outcome !== 'returned')
+        return 'not-a-returned-step-interaction';
+    if (
+        !options.journal.selectedRecording ||
+        action.target?.recording !== options.journal.selectedRecording
+    )
+        return 'recording-mismatch';
+    if (options.layout !== 'playwright-top-left') return 'layout-unverified';
+    return undefined;
+}
+
+function evidenceFrame(options: AnnotationOptions, activities: Activity[], evidence: Activity) {
+    const frame = Math.ceil(
+        (evidence.endMs / MILLISECONDS_PER_SECOND -
+            options.protection.offsetSeconds +
+            options.protection.uncertaintySeconds) *
+            options.fps,
+    );
+    const nextAction = activities
+        .filter((action) => action.kind === 'interaction' && action.startMs >= evidence.endMs)
+        .sort((a, b) => a.startMs - b.startMs)[0];
+    const latest =
+        (frame + 1) / options.fps +
+        options.protection.offsetSeconds +
+        options.protection.uncertaintySeconds;
+    const marker = options.protection.markers?.some(
+        (range) => frame >= range.start && frame < range.end,
+    );
+    return {
+        frame,
+        marker,
+        fresh:
+            frame >= 0 &&
+            frame < options.sourceFrames &&
+            (!nextAction || latest <= nextAction.startMs / MILLISECONDS_PER_SECOND) &&
+            !marker,
+    };
+}
+
+function appendEvidenceFrames(
+    frames: StepScreenshotFrame[],
+    step: number,
+    prefix: string,
+    frame: number,
+    actionId: number | undefined,
+    hasTarget: boolean,
+) {
+    const file = `${prefix}-after.png`;
+    frames.push({
+        step: step,
+        role: 'after',
+        file,
+        sourceFrame: frame,
+        actionId: actionId,
+    });
+    if (!hasTarget) {
+        const documentation = `${prefix}.png`;
+        frames.push({
+            step: step,
+            role: 'documentation',
+            file: documentation,
+            sourceFrame: frame,
+            actionId: actionId,
+        });
+    }
 }

@@ -28,6 +28,7 @@ Validation and watch mode:
 npm run typecheck
 npm run lint
 npm test
+npm run test:coverage
 npm run test:architecture
 npm run test:package
 npm run watch
@@ -46,7 +47,10 @@ Edit `docs/configuration.md` and `run.config.example.json`, then run
 reference and JSON Schema. `npm run docs:check` verifies these artifacts without
 writing. The package check runs this verification in CI.
 
-`npm test` runs the unit and architecture suites. Browser integration tests run separately with
+`npm test` runs the unit and architecture suites. `npm run test:coverage` runs the
+same suites with V8 coverage and writes `coverage/lcov.info` for SonarCloud.
+Browser integration tests and page-realm scripts are not measured by that report.
+Browser integration tests run separately with
 `npm run test:browser` and require Playwright Chromium and FFmpeg. Install the
 browser with `npx playwright install chromium` if it is not already available.
 FFmpeg must be on `PATH`, or configured with `FFMPEG_PATH`.

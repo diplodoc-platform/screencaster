@@ -364,6 +364,8 @@
     "lock": "npm install --no-workspaces --package-lock-only --ignore-scripts",
     "test": "vitest run",
     "test:watch": "vitest",
+    "pretest:coverage": "npm run build:scripts",
+    "test:coverage": "vitest run --coverage",
     "pre-commit": "lint-staged",
     "prepare": "husky || true",
     "test:browser": "vitest run --config vitest.browser.config.mjs",
@@ -381,6 +383,8 @@
   "devDependencies": {
     "@diplodoc/infra": "2.3.0",
     "@types/node": "^24.13.3",
+    "@types/pngjs": "^6.0.5",
+    "@vitest/coverage-v8": "^4.1.12",
     "esbuild": "^0.27.7",
     "prettier": "^3.9.10",
     "typescript": "^6.0.3",
@@ -403,10 +407,13 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
+    "@napi-rs/canvas": "^1.1.1",
     "@playwright/mcp": "^0.0.63",
     "ajv": "^8.20.0",
+    "image-size": "^2.1.0",
+    "jpeg-js": "^0.4.4",
     "playwright": "^1.58.1",
-    "sharp": "^0.35.5",
+    "pngjs": "^7.0.0",
     "zod": "^4.6.7"
   }
 }

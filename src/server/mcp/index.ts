@@ -75,7 +75,7 @@ function defineTool<S extends z.ZodType>(
     name: string,
     description: string,
     schema: S,
-    handler: (args: z.infer<S>, signal: AbortSignal) => unknown | Promise<unknown>,
+    handler: (args: z.infer<S>, signal: AbortSignal) => unknown,
 ) {
     return {
         name,

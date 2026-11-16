@@ -2,10 +2,10 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import {afterEach, expect, it, vi} from 'vitest';
-import sharp from 'sharp';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {InMemoryTransport} from '@modelcontextprotocol/sdk/inMemory.js';
 
+import {solidPng} from '../../fixtures/images.js';
 import {type Artifact, CaptureRun} from '../../../src/application/capture-run.js';
 import {sha256} from '../../../src/media/recording/recording.js';
 import {narrateVideo} from '../../../src/media/audio/narration.js';
@@ -210,9 +210,7 @@ it('exposes hash-confirmed illustration production and attaches its preview with
     ).toBe(false);
     const run = (await create.mock.results[0].value) as CaptureRun;
     const source = path.join(firstDirectory, 'source.png');
-    await sharp({create: {width: 20, height: 10, channels: 3, background: '#ffffff'}})
-        .png()
-        .toFile(source);
+    await fs.writeFile(source, solidPng(20, 10, '#ffffff'));
     run.manifest.artifacts.push({
         path: 'source.png',
         kind: 'screenshot',

@@ -1,2 +1,4 @@
 import inspectInputLabel from './inspect-input-label.js';
-export default (element: HTMLElement) => inspectInputLabel(element, true);
+export default function resolveInputLabel(element: HTMLElement) {
+    return inspectInputLabel(element, true);
+}

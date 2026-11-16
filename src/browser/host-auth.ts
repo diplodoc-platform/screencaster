@@ -51,7 +51,7 @@ export async function authenticateWithHost(options: {
     try {
         options.policy.assertUrl(url, 'read');
         if (!options.authentication.allowedOrigins.map(exactOrigin).includes(origin)) {
-            throw new Error();
+            throw new Error(HOST_AUTH_TARGET_REFUSED);
         }
     } catch {
         throw new Error(HOST_AUTH_TARGET_REFUSED);
@@ -89,7 +89,7 @@ export async function authenticateWithHost(options: {
             info.size === 0 ||
             (process.platform !== 'win32' && info.mode % 0o1000 !== PRIVATE_FILE_MODE)
         ) {
-            throw new Error();
+            throw new Error(HOST_AUTH_STATE_INVALID);
         }
     } catch {
         throw new Error(HOST_AUTH_STATE_INVALID);

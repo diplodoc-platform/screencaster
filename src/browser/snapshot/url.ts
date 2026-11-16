@@ -1,6 +1,6 @@
 import {SNAPSHOT_URL_REGEXP} from '../constants.js';
 
 export const extractUrlFromSnapshot = (snapshot: string) => {
-    const m = snapshot.match(SNAPSHOT_URL_REGEXP);
+    const m = SNAPSHOT_URL_REGEXP.exec(snapshot);
     return m ? m[1] : '';
 };

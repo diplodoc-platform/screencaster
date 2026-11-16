@@ -1,7 +1,14 @@
 import type {AnalyzedIllustrationInput, IllustrationBox} from './contracts.js';
 
-import sharp, {type OverlayOptions} from 'sharp';
-
+import {
+    type Raster,
+    compositeRaster,
+    cropRaster,
+    decodeRaster,
+    drawRaster,
+    encodePng,
+    resizeRaster,
+} from '../../shared/raster.js';
 import {MAX_IMAGE_PIXELS} from '../../shared/config.js';
 
 import {
@@ -18,18 +25,6 @@ import {
     PREVIEW_WIDTH_PX,
 } from './config.js';
 import {INVALID_ILLUSTRATION_GEOMETRY} from './messages.js';
-import {XML_CHARACTER_PATTERN} from './patterns.js';
-
-export function xmlText(text: string): string {
-    const escapes: Record<string, string> = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&apos;',
-    };
-    return text.replace(XML_CHARACTER_PATTERN, (character) => escapes[character]);
-}
 
 function contains(outer: IllustrationBox, inner: IllustrationBox) {
     return (
@@ -58,35 +53,39 @@ export async function renderPanel(
     input: AnalyzedIllustrationInput,
 ): Promise<Buffer> {
     const crop = validateGeometry(input);
-    const image = sharp(bytes, {limitInputPixels: MAX_IMAGE_PIXELS}).extract({
-        left: crop.x,
-        top: crop.y,
-        width: crop.width,
-        height: crop.height,
-    });
+    const image = cropRaster(decodeRaster(bytes), crop);
     if (input.annotation) {
         const {box, method, color, width, opacity} = input.annotation;
         const x = box.x - crop.x;
         const y = box.y - crop.y;
-        const shape =
-            method === 'outline'
-                ? `<rect x="${x}" y="${y}" width="${box.width}" height="${box.height}" fill="none" stroke="${color}" stroke-width="${width}"/>`
-                : `<path d="M0 0H${crop.width}V${crop.height}H0Z M${x} ${y}h${box.width}v${box.height}h-${box.width}Z" fill="#000000" fill-opacity="${opacity}" fill-rule="evenodd"/>`;
-        const overlay = Buffer.from(
-            `<svg xmlns="http://www.w3.org/2000/svg" width="${crop.width}" height="${crop.height}">${shape}</svg>`,
-        );
-        image.composite([{input: overlay}]);
+        const overlay = drawRaster(crop.width, crop.height, (context) => {
+            context.beginPath();
+            if (method === 'outline') {
+                context.strokeStyle = color;
+                context.lineWidth = width;
+                context.rect(x, y, box.width, box.height);
+                context.stroke();
+            } else {
+                context.fillStyle = '#000000';
+                context.globalAlpha = opacity;
+                context.rect(0, 0, crop.width, crop.height);
+                context.rect(x, y, box.width, box.height);
+                context.fill('evenodd');
+            }
+        });
+        compositeRaster(image, overlay);
     }
-    return image.png().toBuffer();
+    return encodePng(image);
 }
 
 type Panel = {id: string; png: Buffer; width: number; height: number; label?: string};
 
-function labelSvg(width: number, text: string): Buffer {
-    return Buffer.from(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${COLLAGE_LABEL_HEIGHT_PX}">` +
-            `<text x="0" y="${LABEL_FONT_SIZE_PX + LABEL_BASELINE_OFFSET_PX}" font-family="sans-serif" font-size="${LABEL_FONT_SIZE_PX}" fill="${LABEL_COLOR}">${xmlText(text)}</text></svg>`,
-    );
+function labelRaster(width: number, text: string): Raster {
+    return drawRaster(width, COLLAGE_LABEL_HEIGHT_PX, (context) => {
+        context.fillStyle = LABEL_COLOR;
+        context.font = `${LABEL_FONT_SIZE_PX}px sans-serif`;
+        context.fillText(text, 0, LABEL_FONT_SIZE_PX + LABEL_BASELINE_OFFSET_PX);
+    });
 }
 
 function canvas(width: number, height: number) {
@@ -101,7 +100,10 @@ function canvas(width: number, height: number) {
     ) {
         throw new Error(INVALID_ILLUSTRATION_GEOMETRY);
     }
-    return sharp({create: {width, height, channels: 4, background: CANVAS_BACKGROUND}});
+    return drawRaster(width, height, (context) => {
+        context.fillStyle = CANVAS_BACKGROUND;
+        context.fillRect(0, 0, width, height);
+    });
 }
 
 export async function renderCollage(panels: Panel[], vertical: boolean): Promise<Buffer> {
@@ -117,18 +119,18 @@ export async function renderCollage(panels: Panel[], vertical: boolean): Promise
             ? panels.reduce((total, panel) => total + panel.height + COLLAGE_LABEL_HEIGHT_PX, 0) +
               COLLAGE_GAP_PX * (panels.length - 1)
             : Math.max(...panels.map((panel) => panel.height)) + COLLAGE_LABEL_HEIGHT_PX);
-    const composites: OverlayOptions[] = [];
+    const image = canvas(width, height);
     let cursor = COLLAGE_PADDING_PX;
     for (const panel of panels) {
         const left = vertical ? COLLAGE_PADDING_PX : cursor;
         const top = vertical ? cursor : COLLAGE_PADDING_PX;
-        composites.push({input: labelSvg(panel.width, panel.label ?? panel.id), left, top});
-        composites.push({input: panel.png, left, top: top + COLLAGE_LABEL_HEIGHT_PX});
+        compositeRaster(image, labelRaster(panel.width, panel.label ?? panel.id), left, top);
+        compositeRaster(image, decodeRaster(panel.png), left, top + COLLAGE_LABEL_HEIGHT_PX);
         cursor += vertical
             ? panel.height + COLLAGE_LABEL_HEIGHT_PX + COLLAGE_GAP_PX
             : panel.width + COLLAGE_GAP_PX;
     }
-    return canvas(width, height).composite(composites).png().toBuffer();
+    return encodePng(image);
 }
 
 // Contact sheets are explicitly previews. Only this path resamples panels.
@@ -136,28 +138,27 @@ export async function renderContactSheet(panels: Panel[]): Promise<Buffer> {
     const columns = Math.min(PREVIEW_COLUMNS, panels.length);
     const rows = Math.ceil(panels.length / columns);
     const cellHeight = PREVIEW_HEIGHT_PX + COLLAGE_LABEL_HEIGHT_PX;
-    const composites: OverlayOptions[] = [];
+    const image = canvas(
+        COLLAGE_PADDING_PX * 2 + columns * PREVIEW_WIDTH_PX + (columns - 1) * COLLAGE_GAP_PX,
+        COLLAGE_PADDING_PX * 2 + rows * cellHeight + (rows - 1) * COLLAGE_GAP_PX,
+    );
     for (const [index, panel] of panels.entries()) {
-        const preview = await sharp(panel.png)
-            .resize({
-                width: PREVIEW_WIDTH_PX,
-                height: PREVIEW_HEIGHT_PX,
-                fit: 'inside',
-                withoutEnlargement: true,
-            })
-            .png()
-            .toBuffer();
+        const source = decodeRaster(panel.png);
+        const scale = Math.min(
+            1,
+            PREVIEW_WIDTH_PX / source.width,
+            PREVIEW_HEIGHT_PX / source.height,
+        );
+        const preview = resizeRaster(
+            source,
+            Math.max(1, Math.round(source.width * scale)),
+            Math.max(1, Math.round(source.height * scale)),
+        );
         const left = COLLAGE_PADDING_PX + (index % columns) * (PREVIEW_WIDTH_PX + COLLAGE_GAP_PX);
         const top =
             COLLAGE_PADDING_PX + Math.floor(index / columns) * (cellHeight + COLLAGE_GAP_PX);
-        composites.push({input: labelSvg(PREVIEW_WIDTH_PX, panel.label ?? panel.id), left, top});
-        composites.push({input: preview, left, top: top + COLLAGE_LABEL_HEIGHT_PX});
+        compositeRaster(image, labelRaster(PREVIEW_WIDTH_PX, panel.label ?? panel.id), left, top);
+        compositeRaster(image, preview, left, top + COLLAGE_LABEL_HEIGHT_PX);
     }
-    return canvas(
-        COLLAGE_PADDING_PX * 2 + columns * PREVIEW_WIDTH_PX + (columns - 1) * COLLAGE_GAP_PX,
-        COLLAGE_PADDING_PX * 2 + rows * cellHeight + (rows - 1) * COLLAGE_GAP_PX,
-    )
-        .composite(composites)
-        .png()
-        .toBuffer();
+    return encodePng(image);
 }

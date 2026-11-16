@@ -1,5 +1,5 @@
-export default (el: SVGElement | HTMLElement) =>
-    new Promise((resolve) => {
+export default function observeIntersection(el: SVGElement | HTMLElement) {
+    return new Promise((resolve) => {
         const observer = new IntersectionObserver(([entry]) => {
             observer.disconnect();
             resolve(
@@ -10,3 +10,4 @@ export default (el: SVGElement | HTMLElement) =>
         });
         observer.observe(el);
     });
+}

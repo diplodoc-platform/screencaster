@@ -14,18 +14,7 @@ export default async function script(page: ScriptPage, input: Input) {
     const now = () => Date.now();
     const deadline = now() + ACTION_TARGET_DEADLINE_MS;
     const remaining = () => Math.max(1, deadline - now());
-    const observed: {
-        ref: string;
-        geometry?: {
-            x: number;
-            y: number;
-            width: number;
-            height: number;
-            viewportWidth: number;
-            viewportHeight: number;
-        };
-        mediaTarget?: JournalMediaTarget;
-    } = {ref: input.ref};
+    const observed: ObservedTarget = {ref: input.ref};
     const target = page.locator('aria-ref=' + input.ref);
     if ((await target.count()) !== 1) {
         return observed;
@@ -38,7 +27,7 @@ export default async function script(page: ScriptPage, input: Input) {
     if (now() >= deadline) {
         return observed;
     }
-    let viewport = page.viewportSize();
+    const viewport = page.viewportSize();
     let previous: {x: number; y: number; width: number; height: number} | null;
     try {
         previous = await target.boundingBox({timeout: remaining()});
@@ -56,48 +45,7 @@ export default async function script(page: ScriptPage, input: Input) {
     if (outsideViewport(previous, viewport) || !input.measure) {
         return observed;
     }
-    // Availability was already observed. Optional video sampling must not erase it.
-    try {
-        const video = page.video();
-        if (!video) {
-            return observed;
-        }
-        const recording = await video.path();
-        let atMs = now();
-        while (now() < deadline) {
-            await page.waitForTimeout(Math.min(ACTION_TARGET_SAMPLE_INTERVAL_MS, remaining()));
-            if (now() >= deadline) {
-                return observed;
-            }
-            const current = await target.boundingBox({timeout: remaining()});
-            const currentViewport = page.viewportSize();
-            const untilMs = now();
-            if (!current || !currentViewport || untilMs >= deadline) {
-                return observed;
-            }
-            const stable = geometryStable(previous, current, viewport, currentViewport);
-            if (!stable) {
-                atMs = untilMs;
-                previous = current;
-                viewport = currentViewport;
-            }
-            if (stableIntervalElapsed(stable, atMs, untilMs)) {
-                observed.mediaTarget = {
-                    ...current,
-                    ref: observed.ref,
-                    viewportWidth: viewport.width,
-                    viewportHeight: viewport.height,
-                    atMs,
-                    untilMs,
-                    recording,
-                };
-                return observed;
-            }
-        }
-    } catch {
-        // No media target is different from a known offscreen pointer target.
-    }
-    return observed;
+    return measureStableTarget(page, target, observed, previous, viewport, deadline);
 }
 
 function validGeometry(
@@ -150,4 +98,71 @@ function geometryStable(
 }
 function stableIntervalElapsed(stable: boolean, startMs: number, endMs: number): boolean {
     return stable && endMs - startMs >= ACTION_TARGET_STABLE_MS;
+}
+
+type ObservedTarget = {
+    ref: string;
+    geometry?: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        viewportWidth: number;
+        viewportHeight: number;
+    };
+    mediaTarget?: JournalMediaTarget;
+};
+
+async function measureStableTarget(
+    page: ScriptPage,
+    target: ReturnType<ScriptPage['locator']>,
+    observed: ObservedTarget,
+    previous: Box,
+    viewport: Viewport,
+    deadline: number,
+) {
+    const now = () => Date.now();
+    const remaining = () => Math.max(1, deadline - now());
+    // Availability was already observed. Optional video sampling must not erase it.
+    try {
+        const video = page.video();
+        if (!video) {
+            return observed;
+        }
+        const recording = await video.path();
+        let atMs = now();
+        while (now() < deadline) {
+            await page.waitForTimeout(Math.min(ACTION_TARGET_SAMPLE_INTERVAL_MS, remaining()));
+            if (now() >= deadline) {
+                return observed;
+            }
+            const current = await target.boundingBox({timeout: remaining()});
+            const currentViewport = page.viewportSize();
+            const untilMs = now();
+            if (!current || !currentViewport || untilMs >= deadline) {
+                return observed;
+            }
+            const stable = geometryStable(previous, current, viewport, currentViewport);
+            if (!stable) {
+                atMs = untilMs;
+                previous = current;
+                viewport = currentViewport;
+            }
+            if (stableIntervalElapsed(stable, atMs, untilMs)) {
+                observed.mediaTarget = {
+                    ...current,
+                    ref: observed.ref,
+                    viewportWidth: viewport.width,
+                    viewportHeight: viewport.height,
+                    atMs,
+                    untilMs,
+                    recording,
+                };
+                return observed;
+            }
+        }
+    } catch {
+        // No media target is different from a known offscreen pointer target.
+    }
+    return observed;
 }

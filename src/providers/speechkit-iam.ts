@@ -47,7 +47,7 @@ export function serviceAccountToken(options: {
             });
             if (!response.ok) {
                 await response.body?.cancel();
-                throw new Error();
+                throw new Error(SPEECHKIT_IAM_FAILED);
             }
             const result = (await response.json()) as {iamToken?: unknown; expiresAt?: unknown};
             if (
@@ -55,11 +55,11 @@ export function serviceAccountToken(options: {
                 !result.iamToken.trim() ||
                 typeof result.expiresAt !== 'string'
             ) {
-                throw new Error();
+                throw new Error(SPEECHKIT_IAM_FAILED);
             }
             const expiry = Date.parse(result.expiresAt);
             if (!Number.isFinite(expiry) || expiry <= Date.now() + IAM_REFRESH_MARGIN_MS) {
-                throw new Error();
+                throw new Error(SPEECHKIT_IAM_FAILED);
             }
             signal.throwIfAborted();
             token = result.iamToken;

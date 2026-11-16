@@ -7,10 +7,10 @@ type ControlHint = {
     state?: {source: string; value: string | boolean};
 };
 
-export default (
+export default function inspectControlHints(
     el: SVGElement | HTMLElement,
     options: {keys: string[]; role: string},
-): ControlHint | null => {
+): ControlHint | null {
     if (!el.isConnected) {
         return null;
     }
@@ -28,7 +28,7 @@ export default (
         }
     }
     return {attributes};
-};
+}
 
 function checkableHint(
     el: SVGElement | HTMLElement,

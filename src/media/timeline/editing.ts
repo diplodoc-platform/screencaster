@@ -73,35 +73,40 @@ function repeatsUnchangedGesture(first: NarrationAction, repeated: NarrationActi
 
 // These are review candidates, never authorization to cut. Prefer the latest
 // shortest return so an earlier correct selection remains in the narrative.
+const isObservedDraft = (action: NarrationAction) =>
+    action.beforeState &&
+    action.afterState &&
+    DRAFT_TOOLS.has(action.tool) &&
+    action.submit !== true &&
+    (action.tool !== 'browser_press_key' || action.key === 'Escape');
+
+function hasInvalidActionOrder(actions: readonly NarrationAction[]) {
+    return actions.some(
+        (action, index) =>
+            !Number.isSafeInteger(action.actionId) ||
+            action.actionId <= 0 ||
+            (index > 0 && action.actionId <= actions[index - 1].actionId),
+    );
+}
+
 export function closedStateRanges(actions: readonly NarrationAction[]): ClosedStateRange[] {
-    if (
-        actions.some(
-            (action, index) =>
-                !Number.isSafeInteger(action.actionId) ||
-                action.actionId <= 0 ||
-                (index > 0 && action.actionId <= actions[index - 1].actionId),
-        )
-    ) {
+    if (hasInvalidActionOrder(actions)) {
         return [];
     }
     const candidates: ClosedStateRange[] = [];
-    const observed = (action: NarrationAction) =>
-        action.beforeState &&
-        action.afterState &&
-        DRAFT_TOOLS.has(action.tool) &&
-        action.submit !== true &&
-        (action.tool !== 'browser_press_key' || action.key === 'Escape');
-    for (
-        let end = actions.length - 1;
-        end > 0 && candidates.length < MAX_CLOSED_STATE_RANGES;
-        end--
-    ) {
+    let cursor = actions.length - 1;
+    while (cursor > 0 && candidates.length < MAX_CLOSED_STATE_RANGES) {
+        const end = cursor--;
         const last = actions[end];
-        if (!observed(last)) {
+        if (!isObservedDraft(last)) {
             continue;
         }
         const previous = actions[end - 1];
-        if (last.beforeState && observed(previous) && repeatsUnchangedGesture(previous, last)) {
+        if (
+            last.beforeState &&
+            isObservedDraft(previous) &&
+            repeatsUnchangedGesture(previous, last)
+        ) {
             candidates.push({
                 firstActionId: last.actionId,
                 lastActionId: last.actionId,
@@ -111,37 +116,36 @@ export function closedStateRanges(actions: readonly NarrationAction[]): ClosedSt
             });
             continue;
         }
-        let changed = last.beforeState !== last.afterState;
-        for (let start = end - 1; start >= 0; start--) {
+        const start = closedRangeStart(actions, end);
+        if (start !== undefined && actions[start].beforeState) {
             const first = actions[start];
-            if (
-                !first.beforeState ||
-                !observed(first) ||
-                first.afterState !== actions[start + 1].beforeState
-            ) {
-                break;
-            }
-            changed ||= first.beforeState !== first.afterState;
-            if (!changed || first.beforeState !== last.afterState) {
-                continue;
-            }
             candidates.push({
                 firstActionId: first.actionId,
                 lastActionId: last.actionId,
-                restoredState: first.beforeState,
-                knownGesturesOnly: actions
-                    .slice(start, end + 1)
-                    .every((action) =>
-                        action.uiOperation
-                            ? CUTTABLE_UI_OPERATIONS[action.tool]?.includes(action.uiOperation)
-                            : false,
-                    ),
+                restoredState: actions[start].beforeState,
+                knownGesturesOnly: actions.slice(start, end + 1).every(isCuttableGesture),
             });
-            end = start;
-            break;
+            cursor = start - 1;
         }
     }
     return candidates.reverse();
+}
+
+function closedRangeStart(actions: readonly NarrationAction[], end: number) {
+    const last = actions[end];
+    let changed = last.beforeState !== last.afterState;
+    for (let start = end - 1; start >= 0; start--) {
+        const first = actions[start];
+        if (
+            !first.beforeState ||
+            !isObservedDraft(first) ||
+            first.afterState !== actions[start + 1].beforeState
+        )
+            break;
+        changed ||= first.beforeState !== first.afterState;
+        if (changed && first.beforeState === last.afterState) return start;
+    }
+    return undefined;
 }
 
 // Compare complete driver observations; a projected/truncated model context is
@@ -342,4 +346,10 @@ export function excludedMediaIntervals(journal: Pick<MediaJournal, 'actions' | '
             endMs: Math.max(...removed.map((action) => action.endMs)),
         };
     });
+}
+
+function isCuttableGesture(action: NarrationAction): boolean {
+    return action.uiOperation
+        ? (CUTTABLE_UI_OPERATIONS[action.tool]?.includes(action.uiOperation) ?? false)
+        : false;
 }

@@ -51,6 +51,7 @@ Use Node.js 24+ and npm 11.5.1+. Install with `npm ci --no-workspaces`.
 npm run typecheck
 npm run lint
 npm test
+npm run test:coverage
 npm run build
 npm run test:package
 ```
@@ -111,7 +112,8 @@ GitHub workflows come from `@diplodoc/infra`; preserve standard job names and
 ruleset compatibility. ESM tool configs use `.cjs`, with corresponding `.infrarc.yml`
 exclusions. Release Please manages `master`; keep `package.json`,
 `package-lock.json`, and `.release-please-manifest.json` versions aligned. See
-README for publication. Coverage remains optional until SonarCloud is configured.
+README for publication. `npm run test:coverage` writes `coverage/lcov.info` for SonarCloud.
+Coverage measures unit and architecture suites; browser integration runs separately.
 
 ## Generated configuration documentation
 

@@ -1,6 +1,4 @@
-import sharp from 'sharp';
-
-import {MAX_IMAGE_PIXELS} from '../../shared/config.js';
+import {decodeRaster, encodePng, rasterMetadata, resizeRaster} from '../../shared/raster.js';
 import {MAX_PREVIEW_EDGE, MAX_PREVIEW_PIXELS} from '../config.js';
 import {IMAGE_PREVIEW_FAILED} from '../messages.js';
 
@@ -8,7 +6,7 @@ import {IMAGE_PREVIEW_FAILED} from '../messages.js';
 // untouched, and offline illustration QA never needs another browser process.
 export async function imagePreview(png: Buffer) {
     try {
-        const metadata = await sharp(png, {limitInputPixels: MAX_IMAGE_PIXELS}).metadata();
+        const metadata = rasterMetadata(png);
         const {width, height} = metadata;
         if (metadata.format !== 'png' || !width || !height) {
             throw new Error(IMAGE_PREVIEW_FAILED);
@@ -25,10 +23,7 @@ export async function imagePreview(png: Buffer) {
         };
         const preview =
             scale < 1
-                ? await sharp(png, {limitInputPixels: MAX_IMAGE_PIXELS})
-                      .resize(dimensions.width, dimensions.height, {fit: 'fill'})
-                      .png()
-                      .toBuffer()
+                ? encodePng(resizeRaster(decodeRaster(png), dimensions.width, dimensions.height))
                 : png;
         return {
             dimensions,

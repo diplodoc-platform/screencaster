@@ -97,12 +97,10 @@ export default async function script(page: ScriptPage, args: Input) {
     const privacyInput = {token: input.privacyToken, policy: input.policy};
     try {
         const targetLocator = input.ref ? page.locator('aria-ref=' + input.ref) : undefined;
-        if (targetLocator) {
-            if ((await targetLocator.count()) !== 1) {
-                throw new Error(SCREENSHOT_REQUIRES_VISIBLE_BOUNDS);
-            }
-            await targetLocator.scrollIntoViewIfNeeded({timeout: input.timeoutMs});
+        if (targetLocator && (await targetLocator.count()) !== 1) {
+            throw new Error(SCREENSHOT_REQUIRES_VISIBLE_BOUNDS);
         }
+        await targetLocator?.scrollIntoViewIfNeeded({timeout: input.timeoutMs});
         await waitForReadiness(page, input);
         if (hasRedaction) {
             await page.evaluate(privacyProgram as typeof PrepareScreenshotPrivacy, {
@@ -147,15 +145,7 @@ export default async function script(page: ScriptPage, args: Input) {
             });
             await assertNoClosedShadow(page);
         }
-        let origin = {x: 0, y: 0};
-        if (input.area === 'element' && target) {
-            origin = {
-                x: Math.floor(target.x + display.scrollX) - display.scrollX,
-                y: Math.floor(target.y + display.scrollY) - display.scrollY,
-            };
-        } else if (input.area === 'page') {
-            origin = {x: -display.scrollX, y: -display.scrollY};
-        }
+        const origin = screenshotOrigin(input.area, target, display);
         return JSON.stringify({
             viewport,
             target,
@@ -176,4 +166,22 @@ export default async function script(page: ScriptPage, args: Input) {
                 .catch(() => {});
         }
     }
+}
+
+function screenshotOrigin(
+    area: Input['input']['area'],
+    target: {x: number; y: number} | null,
+    display: {scrollX: number; scrollY: number},
+) {
+    let origin = {x: 0, y: 0};
+    if (area === 'element' && target) {
+        origin = {
+            x: Math.floor(target.x + display.scrollX) - display.scrollX,
+            y: Math.floor(target.y + display.scrollY) - display.scrollY,
+        };
+    } else if (area === 'page') {
+        origin = {x: -display.scrollX, y: -display.scrollY};
+    }
+
+    return origin;
 }

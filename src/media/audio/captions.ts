@@ -85,27 +85,8 @@ export function remapCaptions(cues: CaptionCue[], frameMap: FrameMapSegment[], f
     for (const [index, cue] of cues.entries()) {
         const start = Math.floor((cue.startMs * fps) / MILLISECONDS_PER_SECOND);
         const end = Math.ceil((cue.endMs * fps) / MILLISECONDS_PER_SECOND);
-        let retained = 0;
-        for (const segment of frameMap) {
-            const a = Math.max(start, segment.sourceStart);
-            const b = Math.min(end, segment.sourceEnd);
-            if (a >= b) {
-                continue;
-            }
-            retained += b - a;
-            const held = segment.sourceEnd - segment.sourceStart === 1;
-            result.push({
-                text: cue.text,
-                startMs:
-                    ((held ? segment.outputStart : segment.outputStart + a - segment.sourceStart) /
-                        fps) *
-                    MILLISECONDS_PER_SECOND,
-                endMs:
-                    ((held ? segment.outputEnd : segment.outputStart + b - segment.sourceStart) /
-                        fps) *
-                    MILLISECONDS_PER_SECOND,
-            });
-        }
+        const {mapped, retained} = remapCue(cue, start, end, frameMap, fps);
+        result.push(...mapped);
         if (retained > 0 && retained < end - start) {
             partial.push(index);
         }
@@ -155,4 +136,36 @@ export async function exportCaptions(options: {input: string; output: string; cu
     });
     writePrivateJson(path.join(output, 'captions.json'), cues);
     return source.timeline;
+}
+
+function remapCue(
+    cue: CaptionCue,
+    start: number,
+    end: number,
+    frameMap: FrameMapSegment[],
+    fps: number,
+) {
+    const mapped: CaptionCue[] = [];
+    let retained = 0;
+    for (const segment of frameMap) {
+        const a = Math.max(start, segment.sourceStart);
+        const b = Math.min(end, segment.sourceEnd);
+        if (a >= b) {
+            continue;
+        }
+        retained += b - a;
+        const held = segment.sourceEnd - segment.sourceStart === 1;
+        mapped.push({
+            text: cue.text,
+            startMs:
+                ((held ? segment.outputStart : segment.outputStart + a - segment.sourceStart) /
+                    fps) *
+                MILLISECONDS_PER_SECOND,
+            endMs:
+                ((held ? segment.outputEnd : segment.outputStart + b - segment.sourceStart) / fps) *
+                MILLISECONDS_PER_SECOND,
+        });
+    }
+
+    return {mapped, retained};
 }

@@ -8,7 +8,7 @@ import {
 
 export function nativeDialogType(snapshot: string): string | undefined {
     const header = snapshot.replace(CRLF_PATTERN, '\n').split(SNAPSHOT_SECTION_PATTERN, 1)[0];
-    const modal = header.match(MODAL_STATE_SECTION_PATTERN)?.[1];
+    const modal = MODAL_STATE_SECTION_PATTERN.exec(header)?.[1];
     return modal?.match(NATIVE_DIALOG_PATTERN)?.[1];
 }
 

@@ -103,7 +103,7 @@ The package includes offline still-image processing and trusted host adapters.
 Screenshot capture supports bounded readiness,
 host-owned DOM redaction, conservative post-pixel checks, clean-source retention
 and derived SHA-256 provenance. Native screenshots cannot bypass a configured
-policy. Local Sharp processing replaces browser-based highlight/attachment work.
+policy. Local raster processing replaces browser-based highlight/attachment work.
 
 `media/illustration` implements analyze/preview, hash-confirmed production,
 non-resampled panels/collages, contact sheets and local YFM. Production keeps
@@ -122,17 +122,17 @@ Three implementation agents performed cross-reviews of code they did not author.
 The parent integrated changes, added protocol/registration regressions and ran the
 actual browser checks. Concrete findings were corrected before acceptance:
 
-| Finding                                                          | Correction                                                                       | Regression evidence                                      |
-| ---------------------------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| Popup page event arrives after its initial request can start     | Request-boundary owned-page check before fetch/fallback                          | Popup endpoint receives zero requests                    |
-| Hidden ancestor can have a painted visibility override           | Hide via display:none and inspect actual target/pseudo visibility                | Visible descendant canvas and pseudo cases               |
-| Known source can span inline, shadow, flex or generated text     | Bounded composed and whitespace-compacted verification, including marker content | Inline/shadow/flex/before/marker source refusals         |
-| CSS content can paint uninspectable image pixels                 | Reject generated-image functions in relevant computed styles/pseudos             | content:url image refusal and explicit hide success      |
-| Public runtime could record video despite screenshot redaction   | Guard both public startup paths before process launch                            | No MCP process start for unsupported combination         |
-| Escape grant required an invalid ref; approved tools disappeared | Page-bound Escape and separate constrained tool discovery                        | Valid Escape, wrong ref/key and behavioral-extra refusal |
-| Tiny positive DPR produced an invalid analysis                   | Bound derived CSS widths and parse final analysis before output                  | Tiny/subnormal DPR refusal without output directory      |
-| Node refuses TypeScript execution inside node_modules            | Compile typed examples into build/examples and run installed JS                  | Installed synthetic adapter execution                    |
-| Selected Sharp version had high native dependency advisories     | Pin Sharp 0.35.5 and use its explicit type exports                               | Production npm audit reports zero findings               |
+| Finding                                                          | Correction                                                                         | Regression evidence                                      |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| Popup page event arrives after its initial request can start     | Request-boundary owned-page check before fetch/fallback                            | Popup endpoint receives zero requests                    |
+| Hidden ancestor can have a painted visibility override           | Hide via display:none and inspect actual target/pseudo visibility                  | Visible descendant canvas and pseudo cases               |
+| Known source can span inline, shadow, flex or generated text     | Bounded composed and whitespace-compacted verification, including marker content   | Inline/shadow/flex/before/marker source refusals         |
+| CSS content can paint uninspectable image pixels                 | Reject generated-image functions in relevant computed styles/pseudos               | content:url image refusal and explicit hide success      |
+| Public runtime could record video despite screenshot redaction   | Guard both public startup paths before process launch                              | No MCP process start for unsupported combination         |
+| Escape grant required an invalid ref; approved tools disappeared | Page-bound Escape and separate constrained tool discovery                          | Valid Escape, wrong ref/key and behavioral-extra refusal |
+| Tiny positive DPR produced an invalid analysis                   | Bound derived CSS widths and parse final analysis before output                    | Tiny/subnormal DPR refusal without output directory      |
+| Node refuses TypeScript execution inside node_modules            | Compile typed examples into build/examples and run installed JS                    | Installed synthetic adapter execution                    |
+| Sharp bundled libvips under a license denied by CI               | Replace Sharp with MIT/BSD PNG/JPEG codecs and Canvas; preserve source RGBA pixels | Production npm audit reports zero findings               |
 
 Conservative limitations remain explicit: DOM checks cover configured source
 values, not automatic DLP/OCR or proof against hostile transient page rendering;
@@ -163,27 +163,19 @@ parent separately ran the regression suites described below.
 
 ## Validation
 
-- Strict production/test TypeScript checks pass.
-- 97 unit and architecture tests pass, including policies/authentication, capture
-  provenance, forged analysis refusal, constrained tool discovery, illustration
-  confirmation/review integrity and MCP preview/production contracts.
-- Browser coverage contains 26 scenarios. The full 25-case run passed 24; its
-  single failure was the old whole-metadata equality assertion after introducing
-  distinct source paths. The test now compares geometry and verifies source
-  provenance; its DPR scenario and real MCP workflow passed on rerun.
-- The final 13-case privacy suite, including the additional CSS marker case,
-  passes with Sharp 0.35.5. Earlier full-run evidence covers native dialogs, rich
-  text/checkbox/background/scroll interactions, unknown receipts, finalization
-  failure, PNG/video/narration/editing and both request-boundary network cases.
-- ESLint and formatting are checked through the repository's shared infra tools.
-- The typed host examples build and run offline with empty synthetic storage
-  state and a bounded fixture callback; no production login/network is exercised.
-- The updated agent skill passes structural validation and packaging. Its original
-  workflows are retained and extended with privacy/illustration guidance.
-- Installed-package validation checks public exports/declarations, CLI, all guide
-  topics and the packaged typed examples. Production dependency audit is clean.
-
-One historical pre-follow-up run hit an MCP wait failure and later timed out in
-simulated-failure cleanup. Both scenarios subsequently passed; tests restore mocks
-after every case. The earlier wait failure was not reproduced, so its underlying
-cause remains unconfirmed.
+- Strict production/test TypeScript checks, ESLint and formatting pass. Lint also
+  passes in a clean copy without generated build output.
+- 154 unit and architecture tests pass, including policies/authentication,
+  capture provenance, illustration review integrity, bounded PNG/JPEG decoding,
+  exact RGBA crops, alpha compositing and linear-time pattern regression cases.
+- All 27 browser integration scenarios pass with Chromium and FFmpeg 9.0. They
+  cover screenshot privacy, native dialogs, rich text/checkbox/background/scroll
+  interactions, unknown receipts, finalization failures, PNG/video/narration/editing
+  and request-boundary network policies.
+- V8 unit/architecture coverage is exported as LCOV for SonarCloud: 42.41% of
+  source lines. Page-realm and browser integration execution is not included.
+- Installed-package validation passes for public exports/declarations, CLI, host
+  examples and packaged agent guidance; generated configuration artifacts are current.
+- Sharp/libvips are absent from the dependency tree. The replacement PNG/JPEG
+  codecs, metadata reader and Canvas packages use MIT/BSD licenses. Production
+  dependency audit reports zero vulnerabilities.

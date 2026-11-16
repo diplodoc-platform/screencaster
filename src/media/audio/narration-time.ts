@@ -120,16 +120,7 @@ export function fitAudioPacked(
     options: {surroundingSeconds: number; maxHoldSeconds: number},
 ) {
     const {fps} = input.timeline;
-    if (
-        !Number.isFinite(options.surroundingSeconds) ||
-        options.surroundingSeconds < 1 ||
-        options.surroundingSeconds > 5 ||
-        !Number.isFinite(options.maxHoldSeconds) ||
-        options.maxHoldSeconds < 0 ||
-        options.maxHoldSeconds > 5
-    ) {
-        throw new Error(SURROUNDING_CONTEXT_MUST_BE_1_5_SECONDS_RESULT);
-    }
+    validateTimingOptions(options);
     const audioEnd = (index: number) => {
         const next = windows[index + 1];
         return next && audio.has(next.id)
@@ -170,16 +161,7 @@ export function fitAudioPacked(
             counts[frame] = 1;
         }
     }
-    const count = counts.reduce((total, frames) => total + frames, 0);
-    if (count > MAX_FRAMES) {
-        throw new Error(NARRATED_VIDEO_EXCEEDS_THE_FRAME_LIMIT);
-    }
-    const indices = new Uint32Array(count);
-    let cursor = 0;
-    for (let frame = 0; frame < counts.length; frame++) {
-        indices.fill(frame, cursor, cursor + counts[frame]);
-        cursor += counts[frame];
-    }
+    const indices = indicesFromCounts(counts);
     let cumulativeHold = 0;
     const placements = windows.map((window, index) => {
         const baseStart = lowerBound(indices, window.start);
@@ -253,4 +235,31 @@ export function fitAudioPacked(
 export function fitAudio(...args: Parameters<typeof fitAudioPacked>) {
     const fit = fitAudioPacked(...args);
     return {...fit, indices: [...fit.indices], frameRefs: [...fit.frameRefs]};
+}
+
+function validateTimingOptions(options: {surroundingSeconds: number; maxHoldSeconds: number}) {
+    if (
+        !Number.isFinite(options.surroundingSeconds) ||
+        options.surroundingSeconds < 1 ||
+        options.surroundingSeconds > 5 ||
+        !Number.isFinite(options.maxHoldSeconds) ||
+        options.maxHoldSeconds < 0 ||
+        options.maxHoldSeconds > 5
+    ) {
+        throw new Error(SURROUNDING_CONTEXT_MUST_BE_1_5_SECONDS_RESULT);
+    }
+}
+
+function indicesFromCounts(counts: Uint32Array) {
+    const count = counts.reduce((total, frames) => total + frames, 0);
+    if (count > MAX_FRAMES) {
+        throw new Error(NARRATED_VIDEO_EXCEEDS_THE_FRAME_LIMIT);
+    }
+    const indices = new Uint32Array(count);
+    let cursor = 0;
+    for (let frame = 0; frame < counts.length; frame++) {
+        indices.fill(frame, cursor, cursor + counts[frame]);
+        cursor += counts[frame];
+    }
+    return indices;
 }

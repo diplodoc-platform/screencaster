@@ -39,6 +39,8 @@ export const MILLISECONDS_PER_HOUR = 3_600_000;
 export const MCP_SERVICE_NAME = 'diplodoc-screencaster';
 
 export const MAX_IMAGE_PIXELS = 64_000_000;
+export const MAX_RASTER_BYTES = 64 * 1024 * 1024;
+export const MAX_JPEG_DECODE_MEMORY_MB = 512;
 export const IMAGE_OUTLINE_COLOR = '#ff4f4f';
 export const IMAGE_OUTLINE_WIDTH_CSS_PX = 3;
 export const IMAGE_OUTLINE_RADIUS_CSS_PX = 4;

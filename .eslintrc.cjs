@@ -9,6 +9,10 @@ module.exports = {
         tsconfigRootDir: __dirname,
         project: true,
     },
+    settings: {
+        // Self-imports must keep the same group before and after the package is built.
+        'import/internal-regex': '^@diplodoc/screencaster(?:/|$)',
+    },
     // The shared preset still names two formatting rules removed in typescript-eslint 8.
     rules: {
         '@typescript-eslint/member-delimiter-style': 'off',

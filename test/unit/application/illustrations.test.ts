@@ -3,9 +3,9 @@ import type {CaptureRun} from '../../../src/application/capture-run.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import sharp from 'sharp';
 import {afterEach, expect, it} from 'vitest';
 
+import {solidPng} from '../../fixtures/images.js';
 import {
     analyzeRunIllustrations,
     produceRunIllustrations,
@@ -25,9 +25,7 @@ async function fixture() {
     );
     directories.push(directory);
     const image = path.join(directory, 'source.png');
-    await sharp({create: {width: 20, height: 10, channels: 3, background: '#ffffff'}})
-        .png()
-        .toFile(image);
+    await fs.writeFile(image, solidPng(20, 10, '#ffffff'));
     const artifacts = [
         {
             path: 'source.png',

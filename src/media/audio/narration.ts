@@ -124,23 +124,7 @@ export async function narrateVideo(options: {
         durations,
         {surroundingSeconds: 5, maxHoldSeconds: options.maxHoldSeconds ?? 0},
     );
-    const captions: CaptionCue[] = [];
-    for (const placement of fit.placements) {
-        const clip = clips.get(placement.id);
-        const phrase = phrases.find((entry) => entry.id === placement.id);
-        if (!clip || !phrase) {
-            throw new Error(MISSING_SYNTHESIZED_PHRASE);
-        }
-        if (options.captions) {
-            const text = phrase.captionText ?? phrase.text;
-            if (!text) {
-                throw new Error(REQUESTED_CAPTIONS_REQUIRE_VISIBLE_TEXT_FOR_EVERY_PHRASE);
-            }
-            captions.push(
-                speechCaption(text, clip, (placement.outputStart / fps) * MILLISECONDS_PER_SECOND),
-            );
-        }
-    }
+    const captions = narrationCaptions(fit.placements, clips, phrases, fps, options.captions);
     const output = path.resolve(options.output);
     await fs.mkdir(output, {mode: PRIVATE_DIRECTORY_MODE});
     const audioFile = path.join(output, 'audio.wav');
@@ -265,4 +249,31 @@ function phraseAnchors(
             ? undefined
             : input.indices[Math.floor((phrase.holdAtMs / MILLISECONDS_PER_SECOND) * fps)];
     return {anchor, hold};
+}
+
+function narrationCaptions(
+    placements: ReturnType<typeof fitAudioPacked>['placements'],
+    clips: Map<number, AudioClip>,
+    phrases: NarrationPhrase[],
+    fps: number,
+    enabled?: boolean,
+): CaptionCue[] {
+    const captions: CaptionCue[] = [];
+    for (const placement of placements) {
+        const clip = clips.get(placement.id);
+        const phrase = phrases.find((entry) => entry.id === placement.id);
+        if (!clip || !phrase) {
+            throw new Error(MISSING_SYNTHESIZED_PHRASE);
+        }
+        if (enabled) {
+            const text = phrase.captionText ?? phrase.text;
+            if (!text) {
+                throw new Error(REQUESTED_CAPTIONS_REQUIRE_VISIBLE_TEXT_FOR_EVERY_PHRASE);
+            }
+            captions.push(
+                speechCaption(text, clip, (placement.outputStart / fps) * MILLISECONDS_PER_SECOND),
+            );
+        }
+    }
+    return captions;
 }

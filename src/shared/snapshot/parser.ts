@@ -17,7 +17,7 @@ import {
 } from '../patterns.js';
 
 const nodeHeader = NODE_HEADER;
-const nodeAttributes = (line: string): string | undefined => line.match(nodeHeader)?.[1];
+const nodeAttributes = (line: string): string | undefined => nodeHeader.exec(line)?.[1];
 
 // Scalar bodies are page text, even when an example resembles an ARIA node.
 export const snapshotNodes = (lines: string[]) => {
@@ -25,7 +25,7 @@ export const snapshotNodes = (lines: string[]) => {
     let scalarIndent: number | undefined;
     for (let index = 0; index < lines.length; index++) {
         const line = lines[index];
-        const indent = line.match(INDENTATION_PATTERN)?.[0].length ?? 0;
+        const indent = INDENTATION_PATTERN.exec(line)?.[0].length ?? 0;
         if (scalarIndent !== undefined) {
             if (!line.trim() || indent > scalarIndent) {
                 continue;
@@ -52,7 +52,7 @@ export function snapshotWithoutTransientAttributes(snapshot: string): string {
     const lines = snapshot.split('\n');
     for (const node of snapshotNodes(lines)) {
         const line = lines[node.index];
-        const header = line.match(nodeHeader);
+        const header = nodeHeader.exec(line);
         if (!header || !header[1]) {
             continue;
         }
@@ -77,7 +77,7 @@ export const extractSnapshotNode = (snapshot: string, ref: string): string | und
     if (!node) {
         return undefined;
     }
-    const label = lines[node.index].trim().match(NODE_LABEL_PATTERN)?.[0];
+    const label = NODE_LABEL_PATTERN.exec(lines[node.index].trim())?.[0];
     return label ? `${label} [ref=${ref}]` : undefined;
 };
 
@@ -90,7 +90,7 @@ export const extractFocusedInputRef = (snapshot: string) => {
                 .some((attribute) => ['[active]', '[focused]'].includes(attribute)),
     );
     return focused.length === 1
-        ? (focused[0].attributes.match(REF_ATTRIBUTE_PATTERN)?.[1] ?? null)
+        ? (REF_ATTRIBUTE_PATTERN.exec(focused[0].attributes)?.[1] ?? null)
         : null;
 };
 
@@ -119,7 +119,7 @@ export const extractFocusedDialog = (raw: string): string | undefined => {
     let end = start + 1;
     while (
         end < lines.length &&
-        (!lines[end].trim() || (lines[end].match(INDENTATION_PATTERN)?.[0].length ?? 0) > indent)
+        (!lines[end].trim() || (INDENTATION_PATTERN.exec(lines[end])?.[0].length ?? 0) > indent)
     ) {
         end++;
     }
@@ -147,8 +147,7 @@ export const extractAddressableDialogs = (raw: string): string[] => {
         let end = start + 1;
         while (
             end < lines.length &&
-            (!lines[end].trim() ||
-                (lines[end].match(INDENTATION_PATTERN)?.[0].length ?? 0) > indent)
+            (!lines[end].trim() || (INDENTATION_PATTERN.exec(lines[end])?.[0].length ?? 0) > indent)
         ) {
             end++;
         }
@@ -185,8 +184,7 @@ export const splitUnaddressableDialogs = (raw: string): {snapshot: string; refer
         let end = start + 1;
         while (
             end < lines.length &&
-            (!lines[end].trim() ||
-                (lines[end].match(INDENTATION_PATTERN)?.[0].length ?? 0) > indent)
+            (!lines[end].trim() || (INDENTATION_PATTERN.exec(lines[end])?.[0].length ?? 0) > indent)
         ) {
             end++;
         }
@@ -208,7 +206,7 @@ export const filterTopmostDialog = (raw: string, modalRefs: string[] = []): Snap
     let lastDialogIdx = -1;
     let lastDialogIndent = -1;
     for (const node of snapshotNodes(lines)) {
-        const ref = node.attributes.match(REF_ATTRIBUTE_PATTERN)?.[1];
+        const ref = REF_ATTRIBUTE_PATTERN.exec(node.attributes)?.[1];
         if (node.role === 'dialog' && ref && modalRefs.includes(ref)) {
             lastDialogIdx = node.index;
             lastDialogIndent = node.indent;
@@ -229,7 +227,7 @@ export const filterTopmostDialog = (raw: string, modalRefs: string[] = []): Snap
 
     const dialogContent: string[] = [];
     for (let i = lastDialogIdx + 1; i < lines.length; i++) {
-        const lineIndent = lines[i].match(NODE_INDENTATION_PATTERN)?.[1].length ?? 0;
+        const lineIndent = NODE_INDENTATION_PATTERN.exec(lines[i])?.[1].length ?? 0;
         const isEmpty = lines[i].trim() === '';
         if (!isEmpty && lineIndent <= lastDialogIndent) {
             break;

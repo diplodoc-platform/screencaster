@@ -64,7 +64,7 @@ export function decodePreparedActionTarget(
         return prepared;
     }
     try {
-        const payload = extractText(result).match(MCP_RESULT_LINE_PATTERN)?.[1];
+        const payload = MCP_RESULT_LINE_PATTERN.exec(extractText(result))?.[1];
         const observation = z
             .object({
                 ref: refSchema,

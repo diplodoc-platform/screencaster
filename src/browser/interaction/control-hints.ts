@@ -90,7 +90,7 @@ export async function addControlHints(
         ...nodes.filter(({role}) => role === 'paragraph'),
     ]
         .map(({index, role, attributes: nodeAttributes}) => {
-            const ref = nodeAttributes.match(REF_ATTRIBUTE_PATTERN)?.[1];
+            const ref = REF_ATTRIBUTE_PATTERN.exec(nodeAttributes)?.[1];
             return ref ? {ref, index, role} : undefined;
         })
         .filter((control): control is Control => Boolean(control))
@@ -108,7 +108,7 @@ export async function addControlHints(
         throw new SnapshotObservationError('Invalid control observation', 'mcp-error');
     }
     try {
-        const payload = extractText(response).match(MCP_RESULT_BLOCK_PATTERN)?.[1];
+        const payload = MCP_RESULT_BLOCK_PATTERN.exec(extractText(response))?.[1];
         hints = z
             .array(hintSchema)
             .max(maxControls)
@@ -119,37 +119,33 @@ export async function addControlHints(
     const seen = new Set<string>();
     for (const hint of hints) {
         const control = observedControl(hint, controls, seen);
-        if (hint.editable) {
-            const line = lines[control.index];
-            const marker = ' [contenteditable=true]';
-            const end = line.indexOf(']', line.indexOf(`[ref=${control.ref}]`)) + 1;
-            lines[control.index] = line.slice(0, end) + marker + line.slice(end);
-            continue;
-        }
-        if (checkableRole(control.role)) {
-            if (hint.state) {
-                const line = lines[control.index];
-                lines[control.index] =
-                    line.replace(TRAILING_COLON_PATTERN, '') +
-                    ` [DOM checked: ${hint.state.value}; source: ${hint.state.source}]` +
-                    (line.endsWith(':') ? ':' : '');
-            }
-            continue;
-        }
-        const text = sanitizeForModel(JSON.stringify(hint.attributes));
-        if (text.length <= maxHintLength) {
-            const line = lines[control.index];
-            if (control.role === 'button') {
-                lines[control.index] =
-                    line.replace(TRAILING_COLON_PATTERN, '') +
-                    ` [DOM attributes: ${text}]` +
-                    (line.endsWith(':') ? ':' : '');
-            } else {
-                const indent = line.match(INDENTATION_PATTERN)?.[0] ?? '';
-                lines[control.index] =
-                    `${indent}DOM attributes for [ref=${control.ref}]: ${text}\n` + line;
-            }
-        }
+        lines[control.index] = applyControlHint(lines[control.index], control, hint);
     }
     return lines.join('\n');
+}
+
+function applyControlHint(line: string, control: Control, hint: z.infer<typeof hintSchema>) {
+    if (hint.editable) {
+        const end = line.indexOf(']', line.indexOf(`[ref=${control.ref}]`)) + 1;
+        return line.slice(0, end) + ' [contenteditable=true]' + line.slice(end);
+    }
+    if (checkableRole(control.role)) {
+        return hint.state
+            ? appendAnnotation(
+                  line,
+                  `DOM checked: ${hint.state.value}; source: ${hint.state.source}`,
+              )
+            : line;
+    }
+    const text = sanitizeForModel(JSON.stringify(hint.attributes));
+    if (text.length > maxHintLength) return line;
+    if (control.role === 'button') return appendAnnotation(line, `DOM attributes: ${text}`);
+    const indent = INDENTATION_PATTERN.exec(line)?.[0] ?? '';
+    return `${indent}DOM attributes for [ref=${control.ref}]: ${text}\n` + line;
+}
+
+function appendAnnotation(line: string, text: string) {
+    return (
+        line.replace(TRAILING_COLON_PATTERN, '') + ` [${text}]` + (line.endsWith(':') ? ':' : '')
+    );
 }

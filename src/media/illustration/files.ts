@@ -1,8 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import sharp from 'sharp';
 
+import {rasterMetadata} from '../../shared/raster.js';
 import {MAX_IMAGE_PIXELS, PRIVATE_DIRECTORY_MODE, PRIVATE_FILE_MODE} from '../../shared/config.js';
 
 import {MAX_ILLUSTRATION_BYTES, MAX_ILLUSTRATION_DIMENSION} from './config.js';
@@ -44,17 +44,15 @@ export async function readImage(source: string, expectedHash?: string) {
         if (expectedHash && sha256 !== expectedHash) {
             throw new Error(ILLUSTRATION_SOURCE_CHANGED);
         }
-        const metadata = await sharp(bytes, {limitInputPixels: MAX_IMAGE_PIXELS}).metadata();
-        const {width, height, format, pages, orientation} = metadata;
+        const metadata = rasterMetadata(bytes);
+        const {width, height, format} = metadata;
         if (
             !width ||
             !height ||
             !['png', 'jpeg'].includes(format ?? '') ||
             width > MAX_ILLUSTRATION_DIMENSION ||
             height > MAX_ILLUSTRATION_DIMENSION ||
-            width * height > MAX_IMAGE_PIXELS ||
-            (pages !== undefined && pages !== 1) ||
-            (orientation !== undefined && orientation !== 1)
+            width * height > MAX_IMAGE_PIXELS
         ) {
             throw new Error(INVALID_ILLUSTRATION_INPUT);
         }

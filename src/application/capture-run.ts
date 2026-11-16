@@ -269,7 +269,8 @@ export class CaptureRun {
         this.assertIdle();
         const proposal = editProposalSchema.parse(value);
         const decision = decideEdit(this.recorder.journal, stepId, proposal);
-        (this.recorder.journal.edits ??= []).push(decision);
+        this.recorder.journal.edits ??= [];
+        this.recorder.journal.edits.push(decision);
         this.recorder.save();
         return decision;
     }
@@ -318,33 +319,7 @@ export class CaptureRun {
                     ...observation,
                 };
             } catch (error) {
-                if (signal?.aborted) {
-                    await this.browser.abort().catch(() => {});
-                    this.manifest.status = 'aborted';
-                    this.finished = true;
-                    this.save();
-                }
-                if (error instanceof BrowserActionError) {
-                    this.event({kind: 'action-error', tool: name, outcome: error.outcome});
-                    if (error.outcome === 'unknown' && !signal?.aborted) {
-                        const id =
-                            this.recorder.journal.actions.length > before
-                                ? this.recorder.journal.actions.at(-1)?.id
-                                : undefined;
-                        if (id !== undefined) {
-                            this.manifest.unresolvedActions.push({id, tool: name});
-                            this.save();
-                            throw new BrowserActionError(error.message, error.outcome, id);
-                        }
-                        // An earlier action cannot own a missing receipt. Stop the
-                        // session rather than permit another unresolved mutation.
-                        this.manifest.status = 'failed';
-                        this.manifest.error = UNKNOWN_ACTION_RECEIPT_UNAVAILABLE;
-                        this.finished = true;
-                        this.save();
-                        await this.browser.abort().catch(() => {});
-                    }
-                }
+                await this.recordActionFailure(error, name, before, signal);
                 throw error;
             }
         });
@@ -448,22 +423,7 @@ export class CaptureRun {
                     if (this.manifest.steps.some((step) => step.status === 'fail')) {
                         this.manifest.status = 'failed';
                     }
-                    if (this.options.outputs?.video) {
-                        try {
-                            await this.exportVideo({...this.options.outputs.video, signal});
-                            if (this.options.outputs.narration) {
-                                try {
-                                    await this.narrateSteps(signal);
-                                } catch {
-                                    this.manifest.status = 'failed';
-                                    this.manifest.error = AUTOMATIC_NARRATION_FAILED;
-                                }
-                            }
-                        } catch {
-                            this.manifest.status = 'failed';
-                            this.manifest.error = AUTOMATIC_VIDEO_EXPORT_FAILED;
-                        }
-                    }
+                    await this.finishOutputs(signal);
                 } catch {
                     this.manifest.status = 'failed';
                     this.manifest.error =
@@ -560,6 +520,60 @@ export class CaptureRun {
         return this.writer.flush();
     }
 
+    private async recordActionFailure(
+        error: unknown,
+        name: string,
+        before: number,
+        signal?: AbortSignal,
+    ) {
+        if (signal?.aborted) {
+            await this.browser.abort().catch(() => {});
+            this.manifest.status = 'aborted';
+            this.finished = true;
+            this.save();
+        }
+        if (error instanceof BrowserActionError) {
+            this.event({kind: 'action-error', tool: name, outcome: error.outcome});
+            if (error.outcome === 'unknown' && !signal?.aborted) {
+                const id =
+                    this.recorder.journal.actions.length > before
+                        ? this.recorder.journal.actions.at(-1)?.id
+                        : undefined;
+                if (id !== undefined) {
+                    this.manifest.unresolvedActions.push({id, tool: name});
+                    this.save();
+                    throw new BrowserActionError(error.message, error.outcome, id);
+                }
+                // An earlier action cannot own a missing receipt. Stop the
+                // session rather than permit another unresolved mutation.
+                this.manifest.status = 'failed';
+                this.manifest.error = UNKNOWN_ACTION_RECEIPT_UNAVAILABLE;
+                this.finished = true;
+                this.save();
+                await this.browser.abort().catch(() => {});
+            }
+        }
+    }
+
+    private async finishOutputs(signal?: AbortSignal) {
+        if (this.options.outputs?.video) {
+            try {
+                await this.exportVideo({...this.options.outputs.video, signal});
+                if (this.options.outputs.narration) {
+                    try {
+                        await this.narrateSteps(signal);
+                    } catch {
+                        this.manifest.status = 'failed';
+                        this.manifest.error = AUTOMATIC_NARRATION_FAILED;
+                    }
+                }
+            } catch {
+                this.manifest.status = 'failed';
+                this.manifest.error = AUTOMATIC_VIDEO_EXPORT_FAILED;
+            }
+        }
+    }
+
     private async narrateSteps(signal?: AbortSignal) {
         const narration = this.options.outputs.narration;
         const video = this.options.outputs.video;
@@ -625,7 +639,12 @@ export class CaptureRun {
                                 error.message + JOURNAL_UNCONFIRMED_SUFFIX,
                                 error.outcome,
                                 error.actionId,
-                                {cause: new AggregateError([error, cause])},
+                                {
+                                    cause: new AggregateError(
+                                        [error, cause],
+                                        OPERATION_JOURNAL_UNCONFIRMED,
+                                    ),
+                                },
                             );
                         }
                         throw new AggregateError([error, cause], OPERATION_JOURNAL_UNCONFIRMED);

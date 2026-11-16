@@ -7,7 +7,7 @@ import {
     SCREENSHOT_OVERLAY_STYLE,
     SVG_NAMESPACE,
 } from '../config.js';
-export default async (input: DecorateScreenshotInput['input']) => {
+export default async function renderScreenshotOutline(input: DecorateScreenshotInput['input']) {
     const image = document.createElement('img');
     image.src = 'data:image/png;base64,' + input.png;
     document.body.append(image);
@@ -32,4 +32,4 @@ export default async (input: DecorateScreenshotInput['input']) => {
     svg.append(rect);
     document.body.append(svg);
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-};
+}

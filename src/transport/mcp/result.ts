@@ -43,7 +43,7 @@ export function scriptValue(result: McpResult): unknown {
     if (result?.isError) {
         throw new Error(BROWSER_OBSERVATION_FAILED);
     }
-    const match = extractText(result).match(RESULT_PATTERN);
+    const match = RESULT_PATTERN.exec(extractText(result));
     if (!match) {
         throw new Error(MISSING_BROWSER_OBSERVATION);
     }

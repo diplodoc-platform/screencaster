@@ -4,13 +4,13 @@ import {INTERSECTION_TIMEOUT_MS} from '../config.js';
 
 import codeEditorOwnsTextReceiver from './code-editor-text-receiver.js';
 import coveringLabels from './covering-branch-labels.js';
-export default async (
+export default async function inspectInteractionReadiness(
     el: SVGElement | HTMLElement,
     scriptArguments: {
         value: string[];
         input: CheckInteractionReadinessInput;
     },
-) => {
+) {
     const {value: allowedLabels, input} = scriptArguments;
     const defer = {state: 'defer'};
     const view = el.ownerDocument.defaultView;
@@ -59,7 +59,7 @@ export default async (
         return defer;
     }
     return {state: 'blocked', blockerLabels: coveringLabels(el, hit, allowedLabels)};
-};
+}
 
 function observeIntersection(
     el: Element,
@@ -129,23 +129,22 @@ function hasExposedTextEntry(
                 (el as HTMLInputElement).type,
             )) ||
         (el as HTMLElement).isContentEditable;
-    if (textEntry && nativeTextEntry) {
-        if (codeEditorOwnsTextReceiver(el, hit)) {
-            return true;
-        }
-        const insetX = Math.min(2, clip.width / 4);
-        const insetY = Math.min(2, clip.height / 4);
-        const xs = [clip.left + insetX, (clip.left + clip.right) / 2, clip.right - insetX];
-        const ys = [clip.top + insetY, (clip.top + clip.bottom) / 2, clip.bottom - insetY];
-        for (let ix = 0; ix < xs.length; ix++) {
-            for (let iy = 0; iy < ys.length; iy++) {
-                if (ix === 1 && iy === 1) {
-                    continue;
-                }
-                const portionHit = el.ownerDocument.elementFromPoint(xs[ix], ys[iy]);
-                if (portionHit === el || (portionHit && el.contains(portionHit))) {
-                    return true;
-                }
+    if (!textEntry || !nativeTextEntry) return false;
+    if (codeEditorOwnsTextReceiver(el, hit)) {
+        return true;
+    }
+    const insetX = Math.min(2, clip.width / 4);
+    const insetY = Math.min(2, clip.height / 4);
+    const xs = [clip.left + insetX, (clip.left + clip.right) / 2, clip.right - insetX];
+    const ys = [clip.top + insetY, (clip.top + clip.bottom) / 2, clip.bottom - insetY];
+    for (let ix = 0; ix < xs.length; ix++) {
+        for (let iy = 0; iy < ys.length; iy++) {
+            if (ix === 1 && iy === 1) {
+                continue;
+            }
+            const portionHit = el.ownerDocument.elementFromPoint(xs[ix], ys[iy]);
+            if (portionHit === el || (portionHit && el.contains(portionHit))) {
+                return true;
             }
         }
     }

@@ -1,5 +1,9 @@
 import {GEOMETRY_DECIMAL_SCALE, MAX_GEOMETRY_MAGNITUDE} from '../config.js';
-export default (el: Element, entry: IntersectionObserverEntry | undefined, interactive: string) => {
+export default function inspectElement(
+    el: Element,
+    entry: IntersectionObserverEntry | undefined,
+    interactive: string,
+) {
     const tags: Record<string, string> = {
         A: 'a',
         BUTTON: 'button',
@@ -65,4 +69,4 @@ export default (el: Element, entry: IntersectionObserverEntry | undefined, inter
               }
             : {}),
     };
-};
+}

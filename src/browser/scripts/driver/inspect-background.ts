@@ -68,7 +68,7 @@ export default async function script(page: ScriptPage, input: Input) {
                 const resolved = await session.send('DOM.resolveNode', {
                     backendNodeId: hit.backendNodeId,
                 });
-                const objectId = resolved.object && resolved.object.objectId;
+                const objectId = resolved.object?.objectId;
                 if (!objectId) {
                     return null;
                 }
@@ -115,59 +115,85 @@ export default async function script(page: ScriptPage, input: Input) {
         (await target.count()) === 1 &&
         (await target.evaluate((el, expected) => el === expected, handle));
 
+    type Observation = NonNullable<Awaited<ReturnType<typeof readSurface>>>;
+    type MeasuredSurface = {
+        locator: ReturnType<ScriptPage['locator']>;
+        observation: Observation;
+        child: ElementHandle<SVGElement | HTMLElement>;
+    };
+    const recheckChild = async (entry: MeasuredSurface) => {
+        if (
+            (await entry.locator.count()) !== 1 ||
+            !(await entry.locator.evaluate((el, expected) => el === expected, entry.child)) ||
+            !(await entry.child.evaluate(
+                (el, root) =>
+                    root.isConnected && el.isConnected && el !== root && root.contains(el),
+                handle,
+            ))
+        )
+            return false;
+        const fresh = await readSurface(entry.child);
+        return Boolean(fresh && JSON.stringify(fresh) === JSON.stringify(entry.observation));
+    };
+    const recheckAncestor = async (
+        entry: Omit<MeasuredSurface, 'child'> & {ancestor: MeasuredSurface['child']},
+    ) => {
+        if (
+            expired() ||
+            (await entry.locator.count()) !== 1 ||
+            !(await entry.locator.evaluate((el, expected) => el === expected, entry.ancestor)) ||
+            !(await entry.ancestor.evaluate(
+                (el, child) =>
+                    el.isConnected && child.isConnected && el !== child && el.contains(child),
+                handle,
+            ))
+        )
+            return false;
+        const fresh = await readSurface(entry.ancestor);
+        return Boolean(fresh && JSON.stringify(fresh) === JSON.stringify(entry.observation));
+    };
+    const isConnectedDescendant = (el: Element, root: Element) =>
+        root.isConnected && el.isConnected && el !== root && root.contains(el);
+    const isConnectedAncestor = (el: Element, child: Element) =>
+        el.isConnected && child.isConnected && el !== child && el.contains(child);
+    const measureCandidate = async (
+        ref: string,
+        handles: ElementHandle<SVGElement | HTMLElement>[],
+        ancestor: boolean,
+    ) => {
+        if (ancestor && expired()) return null;
+        const locator = page.locator('aria-ref=' + ref);
+        if ((await locator.count()) !== 1) return null;
+        const candidate = await locator.elementHandle();
+        if (!candidate) return null;
+        handles.push(candidate);
+        const relationship = ancestor ? isConnectedAncestor : isConnectedDescendant;
+        if (!(await candidate.evaluate(relationship, handle))) return null;
+        return {ref, locator, candidate, observation: await readSurface(candidate)};
+    };
     const measuredCandidates = async (
         first: NonNullable<Awaited<ReturnType<typeof readSurface>>>,
     ) => {
         const retained = [];
-        const handles = [];
+        const handles: ElementHandle<SVGElement | HTMLElement>[] = [];
         try {
             if (!candidateRefs.length || page.url() !== originalUrl) {
                 return [];
             }
             for (const ref of candidateRefs) {
-                const locator = page.locator('aria-ref=' + ref);
-                if ((await locator.count()) !== 1) {
-                    return [];
-                }
-                const child = await locator.elementHandle();
-                if (!child) {
-                    return [];
-                }
-                handles.push(child);
-                if (
-                    !(await child.evaluate(
-                        (el, root) =>
-                            root.isConnected && el.isConnected && el !== root && root.contains(el),
-                        handle,
-                    ))
-                ) {
-                    return [];
-                }
-                const observation = await readSurface(child);
-                if (observation && observation.points.length) {
-                    retained.push({ref, locator, child, observation});
+                const entry = await measureCandidate(ref, handles, false);
+                if (!entry) return [];
+                if (entry.observation?.points.length) {
+                    retained.push({
+                        ...entry,
+                        child: entry.candidate,
+                        observation: entry.observation,
+                    });
                 }
             }
             // Suggestions are observations only. Recheck every retained exact handle before reporting it.
             for (const entry of retained) {
-                if (
-                    (await entry.locator.count()) !== 1 ||
-                    !(await entry.locator.evaluate(
-                        (el, expected) => el === expected,
-                        entry.child,
-                    )) ||
-                    !(await entry.child.evaluate(
-                        (el, root) =>
-                            root.isConnected && el.isConnected && el !== root && root.contains(el),
-                        handle,
-                    ))
-                ) {
-                    return [];
-                }
-                const fresh = await readSurface(entry.child);
-                if (!fresh || JSON.stringify(fresh) !== JSON.stringify(entry.observation)) {
-                    return [];
-                }
+                if (!(await recheckChild(entry))) return [];
             }
             if (!(await stableTarget())) {
                 return [];
@@ -187,7 +213,7 @@ export default async function script(page: ScriptPage, input: Input) {
         }
     };
     const inspectAncestors = async () => {
-        const handles = [];
+        const handles: ElementHandle<SVGElement | HTMLElement>[] = [];
         const measured = [];
         const empty = () => ({state: 'inspected', candidateRefs: []});
         const stableTarget = async () =>
@@ -200,58 +226,18 @@ export default async function script(page: ScriptPage, input: Input) {
                 return empty();
             }
             for (const ref of candidateRefs) {
-                if (expired()) {
-                    return empty();
-                }
-                const locator = page.locator('aria-ref=' + ref);
-                if ((await locator.count()) !== 1) {
-                    return empty();
-                }
-                const ancestor = await locator.elementHandle();
-                if (!ancestor) {
-                    return empty();
-                }
-                handles.push(ancestor);
-                if (
-                    !(await ancestor.evaluate(
-                        (el, child) =>
-                            el.isConnected &&
-                            child.isConnected &&
-                            el !== child &&
-                            el.contains(child),
-                        handle,
-                    ))
-                ) {
-                    return empty();
-                }
-                const observation = await readSurface(ancestor);
-                if (observation && observation.points.length) {
-                    measured.push({ref, locator, ancestor, observation});
+                const entry = await measureCandidate(ref, handles, true);
+                if (!entry) return empty();
+                if (entry.observation?.points.length) {
+                    measured.push({
+                        ...entry,
+                        ancestor: entry.candidate,
+                        observation: entry.observation,
+                    });
                 }
             }
             for (const entry of measured) {
-                if (
-                    expired() ||
-                    (await entry.locator.count()) !== 1 ||
-                    !(await entry.locator.evaluate(
-                        (el, expected) => el === expected,
-                        entry.ancestor,
-                    )) ||
-                    !(await entry.ancestor.evaluate(
-                        (el, child) =>
-                            el.isConnected &&
-                            child.isConnected &&
-                            el !== child &&
-                            el.contains(child),
-                        handle,
-                    ))
-                ) {
-                    return empty();
-                }
-                const fresh = await readSurface(entry.ancestor);
-                if (!fresh || JSON.stringify(fresh) !== JSON.stringify(entry.observation)) {
-                    return empty();
-                }
+                if (!(await recheckAncestor(entry))) return empty();
             }
             return (await stableTarget())
                 ? {state: 'inspected', candidateRefs: measured.map((entry) => entry.ref)}

@@ -31,7 +31,7 @@ function validOrigin(value: string) {
             parsed.password ||
             parsed.hostname.endsWith('.')
         ) {
-            throw new Error();
+            throw new Error(SAFE_EXAMPLE_ERROR);
         }
         return parsed.origin;
     } catch {
@@ -46,7 +46,7 @@ function assertAllowedTarget(target: string, allowedOrigins: readonly string[]) 
             parsed.password ||
             !allowedOrigins.map(validOrigin).includes(parsed.origin)
         ) {
-            throw new Error();
+            throw new Error(SAFE_EXAMPLE_ERROR);
         }
         return parsed;
     } catch {

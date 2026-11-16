@@ -16,7 +16,7 @@ export async function loadLaunchEnvironment(file: string | undefined, baseDirect
     try {
         const target = path.resolve(baseDirectory, file);
         const entry = await fs.lstat(target);
-        if (!entry.isFile() || entry.isSymbolicLink()) throw new Error();
+        if (!entry.isFile() || entry.isSymbolicLink()) throw new Error(INVALID_LAUNCH_ENV_FILE);
         handle = await fs.open(target, constants.O_RDONLY + (constants.O_NOFOLLOW ?? 0));
         const info = await handle.stat();
         if (
@@ -24,7 +24,7 @@ export async function loadLaunchEnvironment(file: string | undefined, baseDirect
             info.size > MAX_LAUNCH_ENV_FILE_BYTES ||
             (process.platform !== 'win32' && info.mode % 0o1000 !== 0o600)
         ) {
-            throw new Error();
+            throw new Error(INVALID_LAUNCH_ENV_FILE);
         }
         const bytes = Buffer.alloc(MAX_LAUNCH_ENV_FILE_BYTES + 1);
         let length = 0;
@@ -33,7 +33,7 @@ export async function loadLaunchEnvironment(file: string | undefined, baseDirect
             if (read.bytesRead === 0) break;
             length += read.bytesRead;
         }
-        if (length > MAX_LAUNCH_ENV_FILE_BYTES) throw new Error();
+        if (length > MAX_LAUNCH_ENV_FILE_BYTES) throw new Error(INVALID_LAUNCH_ENV_FILE);
         const values = Object.entries(parseEnv(bytes.subarray(0, length).toString('utf8'))).map(
             ([name, value]): [string, string] => {
                 if (
@@ -41,7 +41,7 @@ export async function loadLaunchEnvironment(file: string | undefined, baseDirect
                     typeof value !== 'string' ||
                     value.includes('\0')
                 ) {
-                    throw new Error();
+                    throw new Error(INVALID_LAUNCH_ENV_FILE);
                 }
                 return [name, value];
             },

@@ -1,7 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
-import sharp from 'sharp';
+
+import {rasterMetadata} from '../../shared/raster.js';
 
 import {
     ANALYSIS_MANIFEST_FILE,
@@ -224,7 +225,7 @@ export async function produceIllustrations(
     }
     if (['before-after', 'variants', 'sequence'].includes(analysis.result)) {
         const png = await renderCollage(panels, analysis.result === 'sequence');
-        const {width, height} = await sharp(png).metadata();
+        const {width, height} = rasterMetadata(png);
         const dpr =
             new Set(analysis.inputs.map((input) => input.dpr)).size === 1
                 ? (analysis.inputs[0].dpr ?? 1)
@@ -238,7 +239,7 @@ export async function produceIllustrations(
         );
     }
     const contact = await renderContactSheet(panels);
-    const contactMetadata = await sharp(contact).metadata();
+    const contactMetadata = rasterMetadata(contact);
     artifacts.push(
         await writeArtifact(root, CONTACT_SHEET_FILE, 'contact-sheet', 'contact-sheet', contact, {
             width: contactMetadata.width,

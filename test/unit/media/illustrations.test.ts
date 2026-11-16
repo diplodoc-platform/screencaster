@@ -2,9 +2,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import {createHash} from 'node:crypto';
-import sharp from 'sharp';
 import {afterEach, beforeEach, expect, it} from 'vitest';
 
+import {readPng, rgbPixels, solidJpeg, solidPng} from '../../fixtures/images.js';
 import {
     analyzeIllustrations,
     produceIllustrations,
@@ -20,9 +20,7 @@ let bytes: Buffer;
 beforeEach(async () => {
     root = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'illustration-test-')));
     source = path.join(root, 'source.png');
-    bytes = await sharp({create: {width: 100, height: 80, channels: 3, background: '#c0d0e0'}})
-        .png()
-        .toBuffer();
+    bytes = await solidPng(100, 80, '#c0d0e0');
     await fs.writeFile(source, bytes);
 });
 afterEach(async () => fs.rm(root, {recursive: true, force: true}));
@@ -80,8 +78,8 @@ it('analyzes and produces confirmed crops without resampling or modifying origin
     });
     expect(await fs.readFile(source)).toEqual(bytes);
     const panel = path.join(directory, 'menu.png');
-    expect(await sharp(panel).metadata()).toMatchObject({width: 60, height: 40});
-    const pixels = await sharp(panel).removeAlpha().raw().toBuffer();
+    expect(await readPng(panel)).toMatchObject({width: 60, height: 40});
+    const pixels = await rgbPixels(panel);
     expect([...pixels.subarray(0, 3)]).toEqual([192, 208, 224]);
     const yfm = await fs.readFile(path.join(directory, 'publication-yfm.md'), 'utf8');
     expect(yfm).toBe('![Open the item \\[menu\\]](_assets/screenshots/menu.png =30x)\n');
@@ -121,15 +119,27 @@ it('rejects unconfirmed changes, source changes and overwritten output directori
         'new private',
     );
     expect(await fs.readFile(path.join(existing, 'canary'), 'utf8')).toBe('keep');
-    await fs.writeFile(
-        source,
-        await sharp({create: {width: 100, height: 80, channels: 3, background: '#ff0000'}})
-            .png()
-            .toBuffer(),
-    );
+    await fs.writeFile(source, await solidPng(100, 80, '#ff0000'));
     await expect(
         produceIllustrations(confirmed, {output: path.join(root, 'stale')}),
     ).rejects.toThrow('source changed');
+});
+
+it('dims only pixels outside the confirmed target in source coordinates', async () => {
+    const value = job();
+    const input = value.inputs[0];
+    const {directory} = await produce({
+        ...value,
+        inputs: [{...input, annotation: {...input.annotation, method: 'dim', opacity: 0.5}}],
+    });
+    const image = await readPng(path.join(directory, 'menu.png'));
+    const inside = (15 * image.width + 15) * 4;
+    expect([...image.data.subarray(inside, inside + 4)]).toEqual([192, 208, 224, 255]);
+    const outside = [...image.data.subarray(0, 4)];
+    expect(outside[3]).toBe(255);
+    for (const [index, original] of [192, 208, 224].entries()) {
+        expect(Math.abs(outside[index] - original / 2)).toBeLessThanOrEqual(1);
+    }
 });
 
 it.each([1e-20, Number.MIN_VALUE])(
@@ -237,12 +247,7 @@ it('does not confuse visual success with a verified publication or unknown DPR',
 
 it('makes non-resampled collages with per-input DPR and explicit preview outputs', async () => {
     const second = path.join(root, 'second.jpg');
-    await fs.writeFile(
-        second,
-        await sharp({create: {width: 80, height: 60, channels: 3, background: '#ffffff'}})
-            .jpeg()
-            .toBuffer(),
-    );
+    await fs.writeFile(second, await solidJpeg(80, 60, '#ffffff'));
     const value = job();
     const {production, directory} = await produce({
         ...value,
@@ -252,15 +257,15 @@ it('makes non-resampled collages with per-input DPR and explicit preview outputs
             {id: 'after', source: second, dpr: 2, label: 'after'},
         ],
     });
-    expect(await sharp(path.join(directory, 'before.png')).metadata()).toMatchObject({
+    expect(await readPng(path.join(directory, 'before.png'))).toMatchObject({
         width: 100,
         height: 80,
     });
-    expect(await sharp(path.join(directory, 'after.png')).metadata()).toMatchObject({
+    expect(await readPng(path.join(directory, 'after.png'))).toMatchObject({
         width: 80,
         height: 60,
     });
-    expect(await sharp(path.join(directory, 'collage.png')).metadata()).toMatchObject({
+    expect(await readPng(path.join(directory, 'collage.png'))).toMatchObject({
         width: 252,
         height: 160,
     });
@@ -305,8 +310,8 @@ it('decorates capture PNG locally at device resolution and preserves surrounding
         target: {x: 10, y: 10, width: 20, height: 10},
         deviceScaleFactor: 2,
     });
-    expect(await sharp(output).metadata()).toMatchObject({width: 100, height: 80});
-    const pixels = await sharp(output).removeAlpha().raw().toBuffer();
+    expect(await readPng(output)).toMatchObject({width: 100, height: 80});
+    const pixels = await rgbPixels(output);
     expect([...pixels.subarray(0, 3)]).toEqual([192, 208, 224]);
     expect([...pixels.subarray((20 * 100 + 20) * 3, (20 * 100 + 20) * 3 + 3)]).not.toEqual([
         192, 208, 224,

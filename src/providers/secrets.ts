@@ -41,13 +41,13 @@ export async function resolveSecret(
                 info.size > SPEECH_SECRET_FILE_MAX_BYTES ||
                 (process.platform !== 'win32' && info.mode % 0o1000 !== 0o600)
             ) {
-                throw new Error();
+                throw new Error(SPEECHKIT_SECRET_UNAVAILABLE);
             }
             value = await fs.readFile(file, 'utf8');
         }
         value = value?.trim();
         if (!value) {
-            throw new Error();
+            throw new Error(SPEECHKIT_SECRET_UNAVAILABLE);
         }
         registerSecret(value);
         return value;

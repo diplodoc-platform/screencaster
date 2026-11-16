@@ -15,9 +15,9 @@ export type SnapshotPage = {url: string; index?: number; corrected: boolean};
 export function snapshotPage(raw: string): {snapshot: string; page: SnapshotPage} {
     const text = raw.replace(CRLF_PATTERN, '\n');
     const header = text.split(PAGE_HEADER_END_PATTERN, 1)[0];
-    const pageHeader = header.match(PAGE_SECTION_PATTERN);
-    const reportedUrl = header.match(REPORTED_PAGE_URL_PATTERN)?.[1] ?? '';
-    const tabs = header.match(OPEN_TABS_SECTION_PATTERN)?.[1];
+    const pageHeader = PAGE_SECTION_PATTERN.exec(header);
+    const reportedUrl = REPORTED_PAGE_URL_PATTERN.exec(header)?.[1] ?? '';
+    const tabs = OPEN_TABS_SECTION_PATTERN.exec(header)?.[1];
     if (tabs === undefined) {
         return {snapshot: text, page: {url: reportedUrl, corrected: false}};
     }

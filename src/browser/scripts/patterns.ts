@@ -8,5 +8,5 @@ export const NETWORK_DNS_PATTERN = /ENOTFOUND|EAI_AGAIN/;
 export const NETWORK_TLS_PATTERN = /CERT_|certificate|self.signed/;
 export const NETWORK_REFUSED_PATTERN = /ECONNREFUSED/;
 export const NETWORK_CLOSED_PATTERN = /closed|disposed/;
-export const NUMBER_WITH_UNIT_PATTERN = /^[-+]?\d+(?:[.,]\d+)?(\s+[^\d]+)$/;
+export const NUMBER_WITH_UNIT_PATTERN = /^[-+]?\d+(?:[.,]\d+)?(\s[^\d]+)$/;
 export const NUMBER_PATTERN = /^[-+]?\d+(?:[.,]\d+)?$/;

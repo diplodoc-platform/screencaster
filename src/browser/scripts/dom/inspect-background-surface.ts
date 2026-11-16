@@ -4,7 +4,7 @@ import {
     BACKGROUND_SAMPLE_FRACTIONS,
 } from '../config.js';
 import {WHITESPACE_PATTERN} from '../patterns.js';
-export default async (el: HTMLElement, structuralRoles: string[]) => {
+export default async function inspectBackgroundSurface(el: HTMLElement, structuralRoles: string[]) {
     const view = el.ownerDocument.defaultView;
     if (
         !el.isConnected ||
@@ -60,7 +60,7 @@ export default async (el: HTMLElement, structuralRoles: string[]) => {
         border: [borderLeft, borderTop],
         points,
     };
-};
+}
 
 function supportsBackgroundAncestors(
     el: HTMLElement,

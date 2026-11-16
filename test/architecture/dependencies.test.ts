@@ -108,6 +108,6 @@ it('keeps runtime imports acyclic', () => {
         visited.add(file);
     }
     for (const file of files) {
-        visit(file, []);
+        expect(() => visit(file, []), path.relative(root, file)).not.toThrow();
     }
 });

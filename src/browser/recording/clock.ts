@@ -24,7 +24,7 @@ export async function captureBrowserClock(
     const result = (await client.callTool('browser_run_code', {
         code: driverScript('capture-media-clock', {final: final, markerId: randomUUID()}),
     })) as McpResult;
-    const payload = extractText(result).match(MCP_RESULT_LINE_PATTERN)?.[1];
+    const payload = MCP_RESULT_LINE_PATTERN.exec(extractText(result))?.[1];
     const encoded: unknown = JSON.parse(payload ?? 'null');
     if (encoded === null && !result?.isError) {
         return undefined;

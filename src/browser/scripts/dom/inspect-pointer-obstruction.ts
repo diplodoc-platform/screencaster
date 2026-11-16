@@ -1,5 +1,8 @@
 import coveringLabels from './covering-branch-labels.js';
-export default (el: SVGElement | HTMLElement, allowedLabels: string[]) => {
+export default function inspectPointerObstruction(
+    el: SVGElement | HTMLElement,
+    allowedLabels: string[],
+) {
     const rect = el.getBoundingClientRect();
     const hit = el.ownerDocument.elementFromPoint(
         rect.left + rect.width / 2,
@@ -10,4 +13,4 @@ export default (el: SVGElement | HTMLElement, allowedLabels: string[]) => {
     }
 
     return {state: 'blocked', blockerLabels: coveringLabels(el, hit, allowedLabels)};
-};
+}

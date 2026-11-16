@@ -9,6 +9,7 @@ export const JOURNAL_PERSISTENCE_FAILED =
     'Journal persistence failed; browser actions must not be repeated';
 
 export const INVALID_IMAGE_GEOMETRY = 'Image dimensions or highlight geometry are invalid';
+export const INVALID_RASTER_IMAGE = 'Expected a bounded, unrotated, single-frame PNG or JPEG image';
 
 export const SCHEMA_ISSUE_REASONS: Record<string, string> = {
     invalid_type: 'incorrect value type or missing required field',

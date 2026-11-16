@@ -154,7 +154,7 @@ export class SpeechKitProvider implements TtsProvider {
             status = response.status;
             if (!response.ok || !response.body) {
                 await response.body?.cancel().catch(() => {});
-                throw new Error();
+                throw new SpeechKitError(phase, status);
             }
             phase = 'response';
             const chunks: Buffer[] = [];
@@ -173,7 +173,7 @@ export class SpeechKitProvider implements TtsProvider {
                     const value = part.value;
                     size += value.length;
                     if (size > MAX_SPEECH_RESPONSE_BYTES) {
-                        throw new Error();
+                        throw new SpeechKitError(phase, status);
                     }
                     chunks.push(Buffer.from(value));
                     part = await reader.read();

@@ -36,28 +36,7 @@ export default async function script(page: ScriptPage, args: Input) {
         }
         const read = () => field.evaluate((el) => ('value' in el ? el.value : el.textContent));
         const before = await read();
-        if (info.richText) {
-            let selected = false;
-            for (let attempt = 0; attempt < MAX_EDITABLE_SELECTION_ATTEMPTS; attempt++) {
-                await field.press('ControlOrMeta+A');
-                const selection = await field.evaluate(
-                    domSource3 as typeof ReadEditableSelectionProgram,
-                    undefined,
-                );
-                if (selection === 'complete') {
-                    selected = true;
-                    break;
-                }
-                if (selection !== 'partial') {
-                    break;
-                }
-            }
-            if (!selected) {
-                return 'not-editable';
-            }
-        } else {
-            await field.press('ControlOrMeta+A');
-        }
+        if (!(await selectEditableText(field, info.richText))) return 'not-editable';
         if (args.text.length) {
             if (info.codeEditor) {
                 await field.evaluate(function pasteEditorText(
@@ -88,11 +67,9 @@ export default async function script(page: ScriptPage, args: Input) {
         }
         const actual = await read();
         const requested = args.text;
-        const unit = !info.richText && String(before).match(NUMBER_WITH_UNIT_PATTERN)?.[1];
         const matches = info.richText
             ? await field.evaluate(domSource4 as typeof VerifyEditableTextProgram, requested)
-            : actual === requested ||
-              (unit && NUMBER_PATTERN.test(requested) && actual === requested + unit);
+            : matchesNativeValue(actual, requested, before);
         if (!matches) {
             throw new Error(INPUT_VALUE_DOES_NOT_MATCH_REQUESTED_REPLACEMENT);
         }
@@ -103,4 +80,42 @@ export default async function script(page: ScriptPage, args: Input) {
     } finally {
         await handle?.dispose();
     }
+}
+
+async function selectEditableText(
+    field: Pick<PlaywrightLocator, 'evaluate' | 'press'>,
+    richText: boolean,
+) {
+    if (richText) {
+        let selected = false;
+        for (let attempt = 0; attempt < MAX_EDITABLE_SELECTION_ATTEMPTS; attempt++) {
+            await field.press('ControlOrMeta+A');
+            const selection = await field.evaluate(
+                domSource3 as typeof ReadEditableSelectionProgram,
+                undefined,
+            );
+            if (selection === 'complete') {
+                selected = true;
+                break;
+            }
+            if (selection !== 'partial') {
+                break;
+            }
+        }
+        if (!selected) {
+            return false;
+        }
+    } else {
+        await field.press('ControlOrMeta+A');
+    }
+
+    return true;
+}
+
+function matchesNativeValue(actual: unknown, requested: string, before: unknown) {
+    const unit = NUMBER_WITH_UNIT_PATTERN.exec(String(before))?.[1];
+    return (
+        actual === requested ||
+        Boolean(unit && NUMBER_PATTERN.test(requested) && actual === requested + unit)
+    );
 }
