@@ -4,3 +4,9 @@ node_modules
 .prettierrc.cjs
 .lintstagedrc.cjs
 .stylelintrc.cjs
+/examples/private-adapters
+/runs
+
+.env
+.env.*
+!.env.example

@@ -1,0 +1,12 @@
+export const DEFAULT_SPEECH_VOICE = 'jane';
+export const DEFAULT_SPEECH_SPEED = 1;
+export const MIN_SPEECH_SPEED = 0.1;
+export const MAX_SPEECH_SPEED = 3;
+export const SPEECH_REQUEST_TIMEOUT_MS = 120_000;
+export const MAX_SPEECH_RESPONSE_BYTES = 8 * 1024 * 1024;
+export const SPEECH_ENDPOINT = 'https://tts.api.cloud.yandex.net/tts/v3/utteranceSynthesis';
+export const SPEECH_SECRET_FILE_MAX_BYTES = 64 * 1024;
+export const IAM_TOKEN_ENDPOINT = 'https://iam.api.cloud.yandex.net/iam/v1/tokens';
+export const IAM_JWT_LIFETIME_SECONDS = 3600;
+export const IAM_REFRESH_MARGIN_MS = 60_000;
+export const IAM_REQUEST_TIMEOUT_MS = 30_000;

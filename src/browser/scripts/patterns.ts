@@ -1,0 +1,12 @@
+export const WHITESPACE_PATTERN = /\s+/;
+export const CHECKABLE_ROLE_PATTERN = /^(checkbox|radio|switch)$/;
+export const CLIPPING_OVERFLOW_PATTERN = /^(auto|scroll|hidden|clip)$/;
+export const SCROLLABLE_OVERFLOW_PATTERN = /^(auto|scroll|hidden)$/;
+export const NETWORK_RESET_PATTERN = /ECONNRESET|socket hang up/;
+export const NETWORK_TIMEOUT_PATTERN = /ETIMEDOUT|Timeout|timed out/;
+export const NETWORK_DNS_PATTERN = /ENOTFOUND|EAI_AGAIN/;
+export const NETWORK_TLS_PATTERN = /CERT_|certificate|self.signed/;
+export const NETWORK_REFUSED_PATTERN = /ECONNREFUSED/;
+export const NETWORK_CLOSED_PATTERN = /closed|disposed/;
+export const NUMBER_WITH_UNIT_PATTERN = /^[-+]?\d+(?:[.,]\d+)?(\s+[^\d]+)$/;
+export const NUMBER_PATTERN = /^[-+]?\d+(?:[.,]\d+)?$/;

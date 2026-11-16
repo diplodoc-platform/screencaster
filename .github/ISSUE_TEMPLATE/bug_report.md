@@ -12,9 +12,9 @@ A clear and concise description of what the bug is.
 
 ## Steps to Reproduce
 
-1. 
-2. 
-3. 
+1.
+2.
+3.
 
 ## Expected Behavior
 
@@ -26,9 +26,9 @@ What actually happened.
 
 ## Environment
 
-- **Package version**: 
-- **Node.js version**: 
-- **OS**: 
+- **Package version**:
+- **Node.js version**:
+- **OS**:
 
 ## Code Example
 
@@ -39,9 +39,3 @@ What actually happened.
 ## Additional Context
 
 Add any other context about the problem here.
-
-
-
-
-
-

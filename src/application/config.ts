@@ -1,0 +1,5 @@
+export const MAX_COMPLETION_EVIDENCE_CHARS = 4000;
+export const DEFAULT_VIDEO_EXPORT_NAME = 'walkthrough';
+export const DEFAULT_NARRATION_EXPORT_NAME = 'narrated';
+export const MAX_AUTOMATIC_NARRATION_HOLD_SECONDS = 5;
+export const MAX_LAUNCH_ENV_FILE_BYTES = 64 * 1024;

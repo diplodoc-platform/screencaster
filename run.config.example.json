@@ -1,0 +1,65 @@
+{
+  "$schema": "./run.config.schema.json",
+  "version": 1,
+  "envFile": ".env",
+  "directory": "./runs",
+  "authentication": {
+    "module": "./host/authentication.js",
+    "options": {
+      "allowedOrigins": ["https://datalens.ru"],
+      "login": {
+        "env": "SCREENCASTER_LOGIN"
+      },
+      "password": {
+        "env": "SCREENCASTER_PASSWORD"
+      }
+    }
+  },
+  "tts": {
+    "provider": "speechkit",
+    "options": {
+      "apiKey": {
+        "env": "SPEECHKIT_API_KEY"
+      },
+      "voice": "jane",
+      "speed": 1
+    }
+  },
+  "browser": {
+    "url": "https://datalens.ru",
+    "headless": true,
+    "video": true,
+    "locale": "en-US",
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "deviceScaleFactor": 1
+  },
+  "policy": {
+    "rules": [
+      {
+        "origin": "https://datalens.ru",
+        "pathPrefix": "/",
+        "actions": ["read", "act"]
+      }
+    ]
+  },
+  "screenshotPolicy": {
+    "requireRedaction": false
+  },
+  "outputs": {
+    "video": {
+      "name": "walkthrough",
+      "highlights": true
+    },
+    "screenshots": {
+      "highlight": true
+    },
+    "narration": {
+      "name": "narrated",
+      "captions": true,
+      "maxHoldSeconds": 5
+    }
+  }
+}

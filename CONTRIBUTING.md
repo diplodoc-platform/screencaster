@@ -15,10 +15,12 @@ npm run typecheck
 npm run lint
 npm test
 npm run build
+npm run test:package
 ```
 
-The package currently contains only a scaffold. Add Vitest tests with the core
-implementation and remove `--passWithNoTests` from the test script at that point.
+Add Vitest tests under `test/unit/`, mirroring the relevant capability. Browser
+integration tests live under `test/browser/` and run separately with `npm run test:browser`; they require
+Playwright Chromium and FFmpeg. See README for setup instructions.
 
 Use Conventional Commits and write code, comments, and documentation in English.
 Open a pull request with a description of the change and its validation. Changes
