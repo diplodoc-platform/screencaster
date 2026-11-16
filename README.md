@@ -50,6 +50,9 @@ writing. The package check runs this verification in CI.
 `npm test` runs the unit and architecture suites. `npm run test:coverage` runs the
 same suites with V8 coverage and writes `coverage/lcov.info` for SonarCloud.
 Browser integration tests and page-realm scripts are not measured by that report.
+For SonarCloud uploads from CI, disable Automatic Analysis in the project's
+Administration → Analysis Method settings; SonarCloud rejects simultaneous
+automatic and CI analysis. The coverage artifact remains available in GitHub Actions.
 Browser integration tests run separately with
 `npm run test:browser` and require Playwright Chromium and FFmpeg. Install the
 browser with `npx playwright install chromium` if it is not already available.

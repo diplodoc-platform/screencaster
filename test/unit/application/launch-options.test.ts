@@ -82,14 +82,13 @@ it('requires the configured state variable, but permits an explicit CLI override
     });
     vi.stubEnv('SCREENCASTER_TEST_STATE', '');
     await expect(loadLaunchOptions({config: file}, root)).rejects.toThrow('empty or missing');
+    const override = path.join(root, 'override.json');
+    const privateState = path.join(root, 'private-state.json');
     expect(
-        (await loadLaunchOptions({config: file, storageState: '/tmp/override.json'}, root))
-            .storageStatePath,
-    ).toBe('/tmp/override.json');
-    vi.stubEnv('SCREENCASTER_TEST_STATE', '/tmp/private-state.json');
-    expect((await loadLaunchOptions({config: file}, root)).storageStatePath).toBe(
-        '/tmp/private-state.json',
-    );
+        (await loadLaunchOptions({config: file, storageState: override}, root)).storageStatePath,
+    ).toBe(override);
+    vi.stubEnv('SCREENCASTER_TEST_STATE', privateState);
+    expect((await loadLaunchOptions({config: file}, root)).storageStatePath).toBe(privateState);
 });
 
 it.each([
@@ -159,10 +158,11 @@ it('loads a config-relative authentication factory without exposing its options 
     await fs.writeFile(
         path.join(directory, 'auth.mjs'),
         `
+        import path from 'node:path';
         export function createAuthentication(options, context) {
             if (options.password !== 'private-test-marker') throw new Error('bad option');
             return {allowedOrigins: ['https://service.test'], authenticate: async () => ({
-                status: 'ready', origin: 'https://service.test', storageStatePath: context.baseDirectory + '/state.json'
+                status: 'ready', origin: 'https://service.test', storageStatePath: path.join(context.baseDirectory, 'state.json')
             })};
         }
     `,

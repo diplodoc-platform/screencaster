@@ -239,7 +239,7 @@ it.each([false, true])(
         });
         expect(manifest.status).toBe(failExport ? 'failed' : 'completed');
         expect(manifest.artifacts).toContainEqual(
-            expect.objectContaining({path: 'recordings/raw.webm', kind: 'recording'}),
+            expect.objectContaining({path: path.join('recordings', 'raw.webm'), kind: 'recording'}),
         );
         expect(await fs.readFile(raw, 'utf8')).toBe('retained-raw-fixture');
         expect(await json(run, 'manifest.json')).toEqual(manifest);
