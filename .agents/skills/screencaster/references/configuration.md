@@ -27,9 +27,10 @@ services. See Custom authentication options below.
 For a prepared browser session, replace `authentication` with `storageState` as
 shown below; the remaining settings stay the same.
 
-The sample targets the public DataLens service; it does not grant access or execute
-a scenario. Set `browser.url`, the policy origin and authentication allowlist for
-your service. Paths are relative to the config. Built-in `tts.provider` works from
+The sample uses the reserved example domain `https://app.example.com`; it does
+not grant access or execute a scenario. Set `browser.url`, the policy origin and
+authentication allowlist for your service. Paths are relative to the config.
+Built-in `tts.provider` works from
 both a checkout and an installed package, with no module path to configure.
 
 <!-- config-example:start -->
@@ -43,7 +44,7 @@ both a checkout and an installed package, with no module path to configure.
   "authentication": {
     "module": "./host/authentication.js",
     "options": {
-      "allowedOrigins": ["https://datalens.ru"],
+      "allowedOrigins": ["https://app.example.com"],
       "login": {
         "env": "SCREENCASTER_LOGIN"
       },
@@ -63,7 +64,7 @@ both a checkout and an installed package, with no module path to configure.
     }
   },
   "browser": {
-    "url": "https://datalens.ru",
+    "url": "https://app.example.com",
     "headless": true,
     "video": true,
     "locale": "en-US",
@@ -76,7 +77,7 @@ both a checkout and an installed package, with no module path to configure.
   "policy": {
     "rules": [
       {
-        "origin": "https://datalens.ru",
+        "origin": "https://app.example.com",
         "pathPrefix": "/",
         "actions": ["read", "act"]
       }
@@ -238,7 +239,7 @@ The package does not provide a universal username/password login flow.
   "authentication": {
     "module": "./host/authentication.js",
     "options": {
-      "allowedOrigins": ["https://datalens.ru"],
+      "allowedOrigins": ["https://app.example.com"],
       "login": {"env": "SCREENCASTER_LOGIN"},
       "password": {"env": "SCREENCASTER_PASSWORD"}
     }
@@ -439,8 +440,8 @@ To restrict one path, use a rule such as:
 {
   "rules": [
     {
-      "origin": "https://datalens.ru",
-      "path": "/settings/templates",
+      "origin": "https://app.example.com",
+      "path": "/settings",
       "actions": ["read", "act"]
     }
   ]
@@ -477,10 +478,10 @@ Example read-only policy replacement (no POST endpoints or interactions allowed)
 ```json
 {
   "policy": {
-    "rules": [{"origin": "https://datalens.ru", "actions": ["read"]}],
-    "networkAllowedOrigins": ["https://datalens.ru", "https://static.example.org"],
+    "rules": [{"origin": "https://app.example.com", "actions": ["read"]}],
+    "networkAllowedOrigins": ["https://app.example.com", "https://static.example.org"],
     "capture": {
-      "navigationUrls": ["https://datalens.ru"],
+      "navigationUrls": ["https://app.example.com"],
       "postReads": [],
       "deniedHosts": [],
       "readOnlyActions": []

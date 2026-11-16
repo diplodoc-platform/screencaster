@@ -6,7 +6,7 @@
   "authentication": {
     "module": "./host/authentication.js",
     "options": {
-      "allowedOrigins": ["https://datalens.ru"],
+      "allowedOrigins": ["https://app.example.com"],
       "login": {
         "env": "SCREENCASTER_LOGIN"
       },
@@ -26,7 +26,7 @@
     }
   },
   "browser": {
-    "url": "https://datalens.ru",
+    "url": "https://app.example.com",
     "headless": true,
     "video": true,
     "locale": "en-US",
@@ -39,7 +39,7 @@
   "policy": {
     "rules": [
       {
-        "origin": "https://datalens.ru",
+        "origin": "https://app.example.com",
         "pathPrefix": "/",
         "actions": ["read", "act"]
       }
