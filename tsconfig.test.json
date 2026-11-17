@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "paths": {
+      "@diplodoc/screencaster": ["./src/index.ts"],
+      "@diplodoc/screencaster/browser": ["./src/browser/index.ts"],
+      "@diplodoc/screencaster/media": ["./src/media/index.ts"]
+    },
+    "allowImportingTsExtensions": true
+  },
+  "include": ["src", "test"],
+  "exclude": []
+}

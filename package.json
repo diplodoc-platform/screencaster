@@ -9,33 +9,385 @@
   "exports": {
     ".": {
       "types": "./build/index.d.ts",
-      "import": "./build/index.js"
+      "import": "./build/index.js",
+      "default": "./build/index.js"
+    },
+    "./browser": {
+      "types": "./build/browser/index.d.ts",
+      "import": "./build/browser/index.js",
+      "default": "./build/browser/index.js"
+    },
+    "./media": {
+      "types": "./build/media/index.d.ts",
+      "import": "./build/media/index.js",
+      "default": "./build/media/index.js"
+    },
+    "./mcp": {
+      "types": "./build/server/mcp/public.d.ts",
+      "import": "./build/server/mcp/public.js",
+      "default": "./build/server/mcp/public.js"
+    },
+    "./providers/speechkit": {
+      "types": "./build/providers/speech-kit.d.ts",
+      "import": "./build/providers/speech-kit.js",
+      "default": "./build/providers/speech-kit.js"
+    },
+    "./browser/scripts": {
+      "types": "./build/browser/scripts/index.d.ts",
+      "import": "./build/browser/scripts/index.js",
+      "default": "./build/browser/scripts/index.js"
+    },
+    "./media/montage": {
+      "types": "./build/media/export/montage.d.ts",
+      "import": "./build/media/export/montage.js",
+      "default": "./build/media/export/montage.js"
+    },
+    "./media/protection": {
+      "types": "./build/media/recording/protection.d.ts",
+      "import": "./build/media/recording/protection.js",
+      "default": "./build/media/recording/protection.js"
+    },
+    "./media/renderMappedVideo": {
+      "types": "./build/media/timeline/render-mapped-video.d.ts",
+      "import": "./build/media/timeline/render-mapped-video.js",
+      "default": "./build/media/timeline/render-mapped-video.js"
+    },
+    "./media/annotations": {
+      "types": "./build/media/timeline/annotations.d.ts",
+      "import": "./build/media/timeline/annotations.js",
+      "default": "./build/media/timeline/annotations.js"
+    },
+    "./media/outline": {
+      "types": "./build/media/timeline/outline.d.ts",
+      "import": "./build/media/timeline/outline.js",
+      "default": "./build/media/timeline/outline.js"
+    },
+    "./media/editing": {
+      "types": "./build/media/timeline/editing.d.ts",
+      "import": "./build/media/timeline/editing.js",
+      "default": "./build/media/timeline/editing.js"
+    },
+    "./media/browserClock": {
+      "types": "./build/browser/recording/clock.d.ts",
+      "import": "./build/browser/recording/clock.js",
+      "default": "./build/browser/recording/clock.js"
+    },
+    "./media/cancellation": {
+      "types": "./build/media/cancellation.d.ts",
+      "import": "./build/media/cancellation.js",
+      "default": "./build/media/cancellation.js"
+    },
+    "./media/narrationTime": {
+      "types": "./build/media/audio/narration-time.d.ts",
+      "import": "./build/media/audio/narration-time.js",
+      "default": "./build/media/audio/narration-time.js"
+    },
+    "./browser/BrowserContextGuard": {
+      "types": "./build/browser/browser-context-guard.d.ts",
+      "import": "./build/browser/browser-context-guard.js",
+      "default": "./build/browser/browser-context-guard.js"
+    },
+    "./browser/browser-context-guard": {
+      "types": "./build/browser/browser-context-guard.d.ts",
+      "import": "./build/browser/browser-context-guard.js",
+      "default": "./build/browser/browser-context-guard.js"
+    },
+    "./browser/actionTarget": {
+      "types": "./build/browser/capture/action-target.d.ts",
+      "import": "./build/browser/capture/action-target.js",
+      "default": "./build/browser/capture/action-target.js"
+    },
+    "./browser/action-target": {
+      "types": "./build/browser/capture/action-target.d.ts",
+      "import": "./build/browser/capture/action-target.js",
+      "default": "./build/browser/capture/action-target.js"
+    },
+    "./browser/backgroundClick": {
+      "types": "./build/browser/interaction/background-click.d.ts",
+      "import": "./build/browser/interaction/background-click.js",
+      "default": "./build/browser/interaction/background-click.js"
+    },
+    "./browser/background-click": {
+      "types": "./build/browser/interaction/background-click.d.ts",
+      "import": "./build/browser/interaction/background-click.js",
+      "default": "./build/browser/interaction/background-click.js"
+    },
+    "./browser/controlHints": {
+      "types": "./build/browser/interaction/control-hints.d.ts",
+      "import": "./build/browser/interaction/control-hints.js",
+      "default": "./build/browser/interaction/control-hints.js"
+    },
+    "./browser/control-hints": {
+      "types": "./build/browser/interaction/control-hints.d.ts",
+      "import": "./build/browser/interaction/control-hints.js",
+      "default": "./build/browser/interaction/control-hints.js"
+    },
+    "./browser/evidenceDiagnostics": {
+      "types": "./build/browser/evidence-diagnostics.d.ts",
+      "import": "./build/browser/evidence-diagnostics.js",
+      "default": "./build/browser/evidence-diagnostics.js"
+    },
+    "./browser/evidence-diagnostics": {
+      "types": "./build/browser/evidence-diagnostics.d.ts",
+      "import": "./build/browser/evidence-diagnostics.js",
+      "default": "./build/browser/evidence-diagnostics.js"
+    },
+    "./browser/inputEvidence": {
+      "types": "./build/browser/interaction/input-evidence.d.ts",
+      "import": "./build/browser/interaction/input-evidence.js",
+      "default": "./build/browser/interaction/input-evidence.js"
+    },
+    "./browser/input-evidence": {
+      "types": "./build/browser/interaction/input-evidence.d.ts",
+      "import": "./build/browser/interaction/input-evidence.js",
+      "default": "./build/browser/interaction/input-evidence.js"
+    },
+    "./browser/inputFile": {
+      "types": "./build/browser/interaction/input-file.d.ts",
+      "import": "./build/browser/interaction/input-file.js",
+      "default": "./build/browser/interaction/input-file.js"
+    },
+    "./browser/input-file": {
+      "types": "./build/browser/interaction/input-file.d.ts",
+      "import": "./build/browser/interaction/input-file.js",
+      "default": "./build/browser/interaction/input-file.js"
+    },
+    "./browser/interactionReadiness": {
+      "types": "./build/browser/interaction/interaction-readiness.d.ts",
+      "import": "./build/browser/interaction/interaction-readiness.js",
+      "default": "./build/browser/interaction/interaction-readiness.js"
+    },
+    "./browser/interaction-readiness": {
+      "types": "./build/browser/interaction/interaction-readiness.d.ts",
+      "import": "./build/browser/interaction/interaction-readiness.js",
+      "default": "./build/browser/interaction/interaction-readiness.js"
+    },
+    "./browser/observations": {
+      "types": "./build/browser/observations.d.ts",
+      "import": "./build/browser/observations.js",
+      "default": "./build/browser/observations.js"
+    },
+    "./browser/obstructionLabels": {
+      "types": "./build/browser/interaction/obstruction-labels.d.ts",
+      "import": "./build/browser/interaction/obstruction-labels.js",
+      "default": "./build/browser/interaction/obstruction-labels.js"
+    },
+    "./browser/obstruction-labels": {
+      "types": "./build/browser/interaction/obstruction-labels.d.ts",
+      "import": "./build/browser/interaction/obstruction-labels.js",
+      "default": "./build/browser/interaction/obstruction-labels.js"
+    },
+    "./browser/outcome": {
+      "types": "./build/browser/outcome.d.ts",
+      "import": "./build/browser/outcome.js",
+      "default": "./build/browser/outcome.js"
+    },
+    "./browser/policy": {
+      "types": "./build/browser/policy.d.ts",
+      "import": "./build/browser/policy.js",
+      "default": "./build/browser/policy.js"
+    },
+    "./browser/requestGuard": {
+      "types": "./build/browser/request-guard.d.ts",
+      "import": "./build/browser/request-guard.js",
+      "default": "./build/browser/request-guard.js"
+    },
+    "./browser/request-guard": {
+      "types": "./build/browser/request-guard.d.ts",
+      "import": "./build/browser/request-guard.js",
+      "default": "./build/browser/request-guard.js"
+    },
+    "./browser/revealTarget": {
+      "types": "./build/browser/interaction/reveal-target.d.ts",
+      "import": "./build/browser/interaction/reveal-target.js",
+      "default": "./build/browser/interaction/reveal-target.js"
+    },
+    "./browser/reveal-target": {
+      "types": "./build/browser/interaction/reveal-target.d.ts",
+      "import": "./build/browser/interaction/reveal-target.js",
+      "default": "./build/browser/interaction/reveal-target.js"
+    },
+    "./browser/runtime": {
+      "types": "./build/browser/runtime.d.ts",
+      "import": "./build/browser/runtime.js",
+      "default": "./build/browser/runtime.js"
+    },
+    "./browser/screenshot": {
+      "types": "./build/browser/capture/screenshot.d.ts",
+      "import": "./build/browser/capture/screenshot.js",
+      "default": "./build/browser/capture/screenshot.js"
+    },
+    "./browser/screenshotDecoration": {
+      "types": "./build/browser/capture/screenshot-decoration.d.ts",
+      "import": "./build/browser/capture/screenshot-decoration.js",
+      "default": "./build/browser/capture/screenshot-decoration.js"
+    },
+    "./browser/screenshot-decoration": {
+      "types": "./build/browser/capture/screenshot-decoration.d.ts",
+      "import": "./build/browser/capture/screenshot-decoration.js",
+      "default": "./build/browser/capture/screenshot-decoration.js"
+    },
+    "./browser/session": {
+      "types": "./build/browser/session.d.ts",
+      "import": "./build/browser/session.js",
+      "default": "./build/browser/session.js"
+    },
+    "./mcp/client": {
+      "types": "./build/transport/mcp/client.d.ts",
+      "import": "./build/transport/mcp/client.js",
+      "default": "./build/transport/mcp/client.js"
+    },
+    "./mcp/modalState": {
+      "types": "./build/shared/snapshot/modal-state.d.ts",
+      "import": "./build/shared/snapshot/modal-state.js",
+      "default": "./build/shared/snapshot/modal-state.js"
+    },
+    "./mcp/modal-state": {
+      "types": "./build/shared/snapshot/modal-state.d.ts",
+      "import": "./build/shared/snapshot/modal-state.js",
+      "default": "./build/shared/snapshot/modal-state.js"
+    },
+    "./mcp/nativeFailure": {
+      "types": "./build/transport/mcp/native-failure.d.ts",
+      "import": "./build/transport/mcp/native-failure.js",
+      "default": "./build/transport/mcp/native-failure.js"
+    },
+    "./mcp/native-failure": {
+      "types": "./build/transport/mcp/native-failure.d.ts",
+      "import": "./build/transport/mcp/native-failure.js",
+      "default": "./build/transport/mcp/native-failure.js"
+    },
+    "./mcp/receipt": {
+      "types": "./build/transport/mcp/receipt.d.ts",
+      "import": "./build/transport/mcp/receipt.js",
+      "default": "./build/transport/mcp/receipt.js"
+    },
+    "./mcp/server": {
+      "types": "./build/server/mcp/index.d.ts",
+      "import": "./build/server/mcp/index.js",
+      "default": "./build/server/mcp/index.js"
+    },
+    "./mcp/snapshotFragment": {
+      "types": "./build/browser/snapshot/snapshot-fragment.d.ts",
+      "import": "./build/browser/snapshot/snapshot-fragment.js",
+      "default": "./build/browser/snapshot/snapshot-fragment.js"
+    },
+    "./mcp/snapshot-fragment": {
+      "types": "./build/browser/snapshot/snapshot-fragment.d.ts",
+      "import": "./build/browser/snapshot/snapshot-fragment.js",
+      "default": "./build/browser/snapshot/snapshot-fragment.js"
+    },
+    "./mcp/snapshotPage": {
+      "types": "./build/shared/snapshot/page.d.ts",
+      "import": "./build/shared/snapshot/page.js",
+      "default": "./build/shared/snapshot/page.js"
+    },
+    "./mcp/snapshot-page": {
+      "types": "./build/shared/snapshot/page.d.ts",
+      "import": "./build/shared/snapshot/page.js",
+      "default": "./build/shared/snapshot/page.js"
+    },
+    "./mcp/snapshotParser": {
+      "types": "./build/shared/snapshot/parser.d.ts",
+      "import": "./build/shared/snapshot/parser.js",
+      "default": "./build/shared/snapshot/parser.js"
+    },
+    "./mcp/snapshot-parser": {
+      "types": "./build/shared/snapshot/parser.d.ts",
+      "import": "./build/shared/snapshot/parser.js",
+      "default": "./build/shared/snapshot/parser.js"
+    },
+    "./media/render-mapped-video": {
+      "types": "./build/media/timeline/render-mapped-video.d.ts",
+      "import": "./build/media/timeline/render-mapped-video.js",
+      "default": "./build/media/timeline/render-mapped-video.js"
+    },
+    "./media/browser-clock": {
+      "types": "./build/browser/recording/clock.d.ts",
+      "import": "./build/browser/recording/clock.js",
+      "default": "./build/browser/recording/clock.js"
+    },
+    "./media/narration-time": {
+      "types": "./build/media/audio/narration-time.d.ts",
+      "import": "./build/media/audio/narration-time.js",
+      "default": "./build/media/audio/narration-time.js"
+    },
+    "./media/illustration": {
+      "types": "./build/media/illustration/index.d.ts",
+      "import": "./build/media/illustration/index.js",
+      "default": "./build/media/illustration/index.js"
+    },
+    "./providers/speechkit-factory": {
+      "types": "./build/providers/speechkit-factory.d.ts",
+      "import": "./build/providers/speechkit-factory.js",
+      "default": "./build/providers/speechkit-factory.js"
+    },
+    "./providers/speechkit-iam": {
+      "types": "./build/providers/speechkit-iam.d.ts",
+      "import": "./build/providers/speechkit-iam.js",
+      "default": "./build/providers/speechkit-iam.js"
+    },
+    "./providers/secrets": {
+      "types": "./build/providers/secrets.d.ts",
+      "import": "./build/providers/secrets.js",
+      "default": "./build/providers/secrets.js"
     }
   },
   "bin": {
     "screencaster": "build/cli.js"
   },
   "files": [
-    "build"
+    "build",
+    "!build/browser/scripts/driver/*.js",
+    "!build/browser/scripts/dom/*.js",
+    ".agents/skills/screencaster",
+    "examples/host-adapters",
+    "docs/host-adapters.md",
+    "docs/illustrations.md",
+    "run.config.example.json",
+    "!examples/private-adapters",
+    "!build/examples/private-adapters",
+    "run.config.schema.json",
+    ".env.example",
+    "!.env"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "watch": "tsc -p tsconfig.json --watch",
-    "typecheck": "tsc --noEmit",
+    "build": "node -e \"require('node:fs').rmSync('build', {recursive: true, force: true})\" && tsc -p tsconfig.json && npm run build:scripts && npm run build:examples",
+    "watch": "npm run build && node scripts/watch.mjs",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "start": "node build/cli.js",
-    "lint": "lint",
-    "lint:fix": "lint fix",
-    "prepack": "npm run build",
+    "lint": "lint && npm run format:check",
+    "lint:fix": "lint fix && npm run format",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepack": "npm run build && node scripts/generate-configuration.mjs --check",
     "lock": "npm install --no-workspaces --package-lock-only --ignore-scripts",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "test:watch": "vitest",
+    "pretest:coverage": "npm run build:scripts",
+    "test:coverage": "vitest run --coverage",
     "pre-commit": "lint-staged",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "test:browser": "vitest run --config vitest.browser.config.mjs",
+    "build:scripts": "node scripts/build-browser-scripts.mjs",
+    "pretest": "npm run build:scripts",
+    "pretest:browser": "npm run build:scripts",
+    "test:architecture": "vitest run test/architecture",
+    "test:package": "npm run build && node scripts/generate-configuration.mjs --check && node scripts/test-package.mjs",
+    "benchmark": "npm run build && tsc -p scripts/tsconfig.json && node --expose-gc scripts/benchmark.ts",
+    "test:examples": "npm run build && node build/examples/host-adapters/synthetic.js",
+    "build:examples": "tsc -p examples/tsconfig.build.json",
+    "docs:generate": "npm run build && node scripts/generate-configuration.mjs",
+    "docs:check": "npm run build && node scripts/generate-configuration.mjs --check"
   },
   "devDependencies": {
     "@diplodoc/infra": "2.3.0",
     "@types/node": "^24.13.3",
-    "typescript": "6.0.3",
+    "@types/pngjs": "^6.0.5",
+    "@vitest/coverage-v8": "^4.1.12",
+    "esbuild": "^0.27.7",
+    "prettier": "^3.9.10",
+    "typescript": "^6.0.3",
     "vitest": "^4.1.4"
   },
   "engines": {
@@ -52,5 +404,16 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@napi-rs/canvas": "^1.1.1",
+    "@playwright/mcp": "^0.0.63",
+    "ajv": "^8.20.0",
+    "image-size": "^2.1.0",
+    "jpeg-js": "^0.4.4",
+    "playwright": "^1.58.1",
+    "pngjs": "^7.0.0",
+    "zod": "^4.6.7"
   }
 }

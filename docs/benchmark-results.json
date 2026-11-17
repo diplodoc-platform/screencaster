@@ -1,0 +1,85 @@
+{
+  "node": "v24.16.0",
+  "platform": "darwin/arm64",
+  "results": [
+    {
+      "mode": "eager-frames",
+      "frameCount": 1000000,
+      "selected": 1000000,
+      "retainedMiB": 243.79056549072266,
+      "peakRssMiB": 519.546875,
+      "storageMs": 134.349875,
+      "mappingMs": 58.36133400000003,
+      "verificationMs": 241.49045799999993
+    },
+    {
+      "mode": "packed-frames",
+      "frameCount": 1000000,
+      "selected": 1000000,
+      "retainedMiB": 24.172752380371094,
+      "peakRssMiB": 121.40625,
+      "storageMs": 245.151708,
+      "mappingMs": 22.802666999999985,
+      "verificationMs": 181.28308300000003
+    },
+    {
+      "mode": "sync-journal",
+      "actions": 4000,
+      "snapshots": 100,
+      "batchSize": 20,
+      "bytes": 1068707,
+      "totalMs": 1315.319542,
+      "largestTimerDelayMs": 1315.624792,
+      "peakRssMiB": 108.359375
+    },
+    {
+      "mode": "queued-journal",
+      "actions": 4000,
+      "snapshots": 100,
+      "batchSize": 20,
+      "bytes": 1068707,
+      "totalMs": 139.751333,
+      "largestTimerDelayMs": 18.036833,
+      "peakRssMiB": 123.796875
+    },
+    {
+      "mode": "queued-receipts",
+      "actions": 4000,
+      "snapshots": 100,
+      "batchSize": 1,
+      "bytes": 1068707,
+      "totalMs": 1213.408708,
+      "largestTimerDelayMs": 2.9057920000000195,
+      "peakRssMiB": 115.296875
+    },
+    {
+      "mode": "eager-video",
+      "frameCount": 45000,
+      "fps": 25,
+      "width": 320,
+      "height": 180,
+      "readMs": 5413.516667,
+      "retainedMiB": 8.425016403198242,
+      "peakRssMiB": 118.375
+    },
+    {
+      "mode": "packed-video",
+      "frameCount": 45000,
+      "fps": 25,
+      "width": 320,
+      "height": 180,
+      "readMs": 5387.650541999999,
+      "retainedMiB": 1.5770854949951172,
+      "peakRssMiB": 102.828125
+    },
+    {
+      "mode": "export-video",
+      "totalMs": 6878.878958,
+      "sourceFrames": 45000,
+      "outputFrames": 51,
+      "fps": 25,
+      "retainedFramesVerified": true,
+      "peakRssMiB": 106.09375
+    }
+  ]
+}

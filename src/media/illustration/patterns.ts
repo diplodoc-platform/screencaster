@@ -1,0 +1,9 @@
+export const ILLUSTRATION_ID_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
+export const HEX_COLOR_PATTERN = /^#[a-fA-F0-9]{6}$/;
+export const ASSET_DIRECTORY_PATTERN = /^[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)*$/;
+export const CSS_CLASS_PATTERN = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+export const XML_CHARACTER_PATTERN = /[&<>"']/g;
+export const MARKDOWN_ALT_PATTERN = /[\\[\]<>]/g;
+export const WHITESPACE_PATTERN = /\s+/g;
+export const ARTIFACT_FILE_PATTERN = /^[a-z][a-z0-9-]*\.(?:png|json|md)$/;
+export const REVIEW_FILE_PATTERN = /^review-[a-f0-9-]{36}\.json$/;

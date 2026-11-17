@@ -1,0 +1,10 @@
+export const AMPERSAND_PATTERN = /&/g;
+export const LESS_THAN_PATTERN = /</g;
+export const GREATER_THAN_PATTERN = />/g;
+export const HTTP_URL_PATTERN = /https?:\/\//i;
+export const SHA256_DIGEST_PATTERN = /^[a-f0-9]{64}$/;
+export const ARIA_REF_VALUE_PATTERN = /^[a-zA-Z0-9_-]+$/;
+export const DOUBLE_QUOTE_PATTERN = /"/g;
+export const FRAME_TIMEBASE_PATTERN = /^#tb 0: (\d+)\/(\d+)/;
+export const FRAME_DIMENSIONS_PATTERN = /^#dimensions 0: (\d+)x(\d+)/;
+export const PLAYWRIGHT_RECORDING_ID_PATTERN = /^[a-f0-9]{32}$/;

@@ -1,3 +1,11 @@
 node_modules
 /build
 package-lock.json
+/coverage
+/run.config.json
+/examples/private-adapters
+/runs
+
+.env
+.env.*
+!.env.example

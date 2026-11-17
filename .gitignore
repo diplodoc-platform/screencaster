@@ -2,6 +2,11 @@ node_modules
 /build
 /coverage
 .env
+.env.*
+!.env.example
 .DS_Store
 *.log
 *.tgz
+/run.config.json
+/examples/private-adapters
+/runs
