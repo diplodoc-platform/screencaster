@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 
-import {MAX_VIDEO_FPS} from '../config.js';
+import {MAX_VIDEO_FPS, OUTLINE_STYLE} from '../config.js';
+import {type OutlineStyle, resolveOutlineStyle} from '../../shared/outline-style.js';
 import {
     MILLISECONDS_PER_SECOND,
     PRIVATE_DIRECTORY_MODE,
@@ -29,6 +30,7 @@ export type AnnotationJournal = Pick<
 type Activity = AnnotationJournal['actions'][number];
 
 export type AnnotationOptions = {
+    outline?: OutlineStyle;
     journal: AnnotationJournal;
     frameMap: FrameMapSegment[];
     fps: number;
@@ -166,6 +168,7 @@ function targetSourceFrame(action: Activity, options: AnnotationOptions): number
 
 export function buildAnnotations(options: AnnotationOptions) {
     checkOptions(options);
+    const outline = resolveOutlineStyle(OUTLINE_STYLE, options.outline);
     const annotations: FrameAnnotation[] = [];
     const sourceTargets: {
         actionId?: number;
@@ -234,6 +237,7 @@ export function buildAnnotations(options: AnnotationOptions) {
         });
     }
     return {
+        outline,
         annotations,
         sourceTargets,
         omitted,
@@ -245,6 +249,7 @@ export function buildAnnotations(options: AnnotationOptions) {
                 entry.scale,
                 {width: options.videoWidth, height: options.videoHeight},
                 `between(n,${entry.outputStart},${entry.outputEnd - 1})`,
+                outline,
             ),
         ),
     };
@@ -256,6 +261,7 @@ async function extractPngBatch(
     frames: {file: string; sourceFrame: number; box?: Box; outlineBox?: Box; scale?: number}[],
     viewport: {width: number; height: number},
     signal?: AbortSignal,
+    outline?: OutlineStyle,
 ) {
     if (!frames.length) {
         return;
@@ -271,6 +277,8 @@ async function extractPngBatch(
                       frame.outlineBox ?? frame.box,
                       frame.scale ?? 1,
                       viewport,
+                      undefined,
+                      outline,
                   )
             : `[source${index}]${filter}[png${index}]`;
     });
@@ -404,6 +412,7 @@ export async function extractStepScreenshots(
         frames.filter((frame) => frame.role !== 'documentation'),
         {width: options.videoWidth, height: options.videoHeight},
         options.signal,
+        plan.outline,
     );
     for (const frame of frames.filter((entry) => entry.role === 'documentation')) {
         fs.copyFileSync(

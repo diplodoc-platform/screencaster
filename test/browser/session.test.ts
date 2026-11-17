@@ -206,7 +206,11 @@ it('preserves device pixels for viewport, page and highlighted element captures'
         expect(plain.metadata?.pixelHeight).toBeGreaterThanOrEqual(120);
         expect(plain.metadata?.pixelHeight).toBeLessThanOrEqual(122);
         const {original: _plainSource, ...plainGeometry} = plain.metadata ?? {};
-        const {original: _highlightSource, ...highlightGeometry} = highlighted.metadata ?? {};
+        const {
+            original: _highlightSource,
+            outline: _outline,
+            ...highlightGeometry
+        } = highlighted.metadata ?? {};
         expect(highlightGeometry).toEqual(plainGeometry);
         expect(highlighted.derivedFrom).toBeDefined();
         const clean = run.manifest.artifacts.find(
@@ -236,7 +240,10 @@ it('records, highlights, narrates with a custom provider and edits the existing 
         await run.screenshot({name: 'highlight-during-video', ref, highlight: true});
         await run.action('browser_click', {element: 'Create', ref});
         await run.finish();
-        const timeline = await run.exportVideo({name: 'montage', highlights: true});
+        const outline = {color: '#00cc88', width: 4, padding: 6, radius: 2, opacity: 0.75};
+        const timeline = await run.exportVideo({name: 'montage', highlights: true, outline});
+        expect(timeline.annotations).toMatchObject({outline});
+        expect(timeline.retainedFramesVerified).toBe(true);
         expect(timeline.annotations.annotations).toHaveLength(1);
         const plain = await run.exportVideo({name: 'plain', highlights: false});
         expect(plain.annotations.annotations).toHaveLength(0);
@@ -267,6 +274,8 @@ it('records, highlights, narrates with a custom provider and edits the existing 
         const editedTimeline = JSON.parse(
             await fs.readFile(path.join(root, 'edited', 'timeline.json'), 'utf8'),
         );
+        expect(editedTimeline.annotations.outline).toEqual(outline);
+        expect(voiced.annotations).toMatchObject({outline});
         expect(editedTimeline.audioSha256).toBe(edited.audioSha256);
         expect(editedTimeline.audioSha256).not.toBe(voiced.audioSha256);
         expect(editedTimeline).not.toHaveProperty('placements');
@@ -277,6 +286,10 @@ it('records, highlights, narrates with a custom provider and edits the existing 
             output: path.join(root, 'clip'),
             range: {startMs: 0, endMs: 400},
         });
+        expect(
+            JSON.parse(await fs.readFile(path.join(root, 'clip', 'timeline.json'), 'utf8'))
+                .annotations.outline,
+        ).toEqual(outline);
         const clipFrames = await readFrames(path.join(root, 'clip', 'video.webm'), undefined, {
             allowAudio: true,
         });
@@ -333,8 +346,8 @@ it('records, highlights, narrates with a custom provider and edits the existing 
 it('produces highlighted PNG and video from launch config without per-call flags or export', async () => {
     const config = path.join(directory, 'outputs.json');
     const outputs = {
-        video: {name: 'guide', highlights: true},
-        screenshots: {highlight: true},
+        video: {name: 'guide', highlights: true, outline: {color: '#00cc88', opacity: 0.75}},
+        screenshots: {highlight: true, outline: {color: '#0000ff', width: 4, padding: 5}},
         narration: {name: 'spoken', captions: true, maxHoldSeconds: 5},
     };
     await fs.writeFile(
@@ -396,6 +409,18 @@ it('produces highlighted PNG and video from launch config without per-call flags
         const highlighted = JSON.parse(
             await call('screencaster_screenshot', {name: 'target', ref}),
         );
+        expect(highlighted.metadata.outline).toMatchObject(outputs.screenshots.outline);
+        const overridden = JSON.parse(
+            await call('screencaster_screenshot', {
+                name: 'custom-target',
+                ref,
+                outline: {opacity: 0.5},
+            }),
+        );
+        expect(overridden.metadata.outline).toMatchObject({
+            ...outputs.screenshots.outline,
+            opacity: 0.5,
+        });
         expect(highlighted.derivedFrom).toBeDefined();
         expect(highlighted.sha256).not.toBe(highlighted.derivedFrom.sha256);
         const plain = JSON.parse(
@@ -418,6 +443,7 @@ it('produces highlighted PNG and video from launch config without per-call flags
             await fs.readFile(path.join(opened.directory, 'spoken/timeline.json'), 'utf8'),
         );
         expect(spoken.annotations.annotations.length).toBeGreaterThan(0);
+        expect(spoken.annotations.outline).toMatchObject(outputs.video.outline);
         expect(spoken.placements).toHaveLength(1);
         expect(
             await fs.readFile(path.join(opened.directory, 'spoken/captions.vtt'), 'utf8'),

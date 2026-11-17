@@ -18,6 +18,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import {z} from 'zod';
 
+import {outlineStyleSchema} from '../../shared/outline-style.js';
 import {MCP_IDENTITY} from '../../shared/metadata.js';
 import {MAX_COMPLETION_EVIDENCE_CHARS} from '../../application/config.js';
 import {PRIVATE_DIRECTORY_MODE} from '../../shared/config.js';
@@ -325,7 +326,13 @@ export function createMcpServer(options: ServerOptions) {
         defineTool(
             'screencaster_export',
             TOOL_DESCRIPTIONS.screencaster_export,
-            z.object({name: artifactName, highlights: z.boolean().optional()}).strict(),
+            z
+                .object({
+                    name: artifactName,
+                    highlights: z.boolean().optional(),
+                    outline: outlineStyleSchema.optional(),
+                })
+                .strict(),
             (input, signal) => current().exportVideo({...input, signal}),
         ),
         defineTool(
@@ -348,6 +355,7 @@ export function createMcpServer(options: ServerOptions) {
                             .strict(),
                     ),
                     captions: z.boolean().optional(),
+                    outline: outlineStyleSchema.optional(),
                     maxHoldSeconds: z.number().min(0).max(5).optional(),
                 })
                 .strict(),
@@ -372,6 +380,7 @@ export function createMcpServer(options: ServerOptions) {
                     output: artifactName,
                     cuts: editorialCutsSchema,
                     highlights: z.boolean().optional(),
+                    outline: outlineStyleSchema.optional(),
                 })
                 .strict(),
             async (input, signal) => {

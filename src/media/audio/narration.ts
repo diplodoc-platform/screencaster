@@ -1,3 +1,5 @@
+import type {OutlineStyle} from '../../shared/outline-style.js';
+
 import fs from 'node:fs/promises';
 import {constants} from 'node:fs';
 import path from 'node:path';
@@ -68,6 +70,7 @@ export async function narrateVideo(options: {
     cache?: string;
     captions?: boolean;
     highlights?: boolean;
+    outline?: OutlineStyle;
     maxHoldSeconds?: number;
     signal?: AbortSignal;
 }) {
@@ -147,6 +150,7 @@ export async function narrateVideo(options: {
         videoWidth: input.frames.width,
         videoHeight: input.frames.height,
         journal: exportHighlights(input, options.highlights) ? input.journal : undefined,
+        outline: {...input.timeline.annotations?.outline, ...options.outline},
         protection: input.timeline.protection,
         layout: input.timeline.layout,
         audioFile,

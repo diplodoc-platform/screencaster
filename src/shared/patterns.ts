@@ -34,3 +34,5 @@ export const INPUT_VALUE_PREFIX_PATTERN = /^(\s*-\s*\/?(?:text|value):)\s*/i;
 export const INPUT_METADATA_OR_EMPTY_LINE_PATTERN = /^\s*$|^\s*-\s*\/[\w-]+:/;
 export const INPUT_VALUE_SEPARATOR_PATTERN = /:\s*/;
 export const DOM_ATTRIBUTES_ANNOTATION_PATTERN = /\[DOM attributes: (\{.*\})\]:?$/;
+
+export const OUTLINE_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;

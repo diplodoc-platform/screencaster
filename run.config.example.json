@@ -52,10 +52,24 @@
   "outputs": {
     "video": {
       "name": "walkthrough",
-      "highlights": true
+      "highlights": true,
+      "outline": {
+        "color": "#5282FF",
+        "width": 5,
+        "padding": 15.5,
+        "radius": 18,
+        "opacity": 1
+      }
     },
     "screenshots": {
-      "highlight": true
+      "highlight": true,
+      "outline": {
+        "color": "#ff4f4f",
+        "width": 3,
+        "padding": 0,
+        "radius": 4,
+        "opacity": 1
+      }
     },
     "narration": {
       "name": "narrated",

@@ -1,3 +1,4 @@
+import type {OutlineStyle} from '../shared/outline-style.js';
 import type {ScreenshotOptions} from '../browser/capture/screenshot.js';
 import type {TtsProvider} from '../media/audio/audio.js';
 
@@ -360,6 +361,7 @@ export class CaptureRun {
             const metadata = await this.browser.screenshot(file, {
                 ...capture,
                 highlight: capture.highlight ?? this.options.outputs?.screenshots?.highlight,
+                outline: {...this.options.outputs?.screenshots?.outline, ...capture.outline},
             });
             const originalPath = path.relative(this.directory, metadata.original.path);
             const normalized = {...metadata, original: {...metadata.original, path: originalPath}};
@@ -444,7 +446,12 @@ export class CaptureRun {
         });
     }
 
-    async exportVideo(options: {name: string; highlights?: boolean; signal?: AbortSignal}) {
+    async exportVideo(options: {
+        name: string;
+        highlights?: boolean;
+        outline?: OutlineStyle;
+        signal?: AbortSignal;
+    }) {
         if (!this.finished || !this.video) {
             throw new Error(FINISH_A_RECORDED_RUN_BEFORE_EXPORTING_VIDEO);
         }
@@ -457,6 +464,7 @@ export class CaptureRun {
                 ? {journal: path.join(this.directory, 'media-events.json')}
                 : {}),
             highlights: options.highlights ?? false,
+            outline: {...this.options.outputs?.video?.outline, ...options.outline},
             signal: options.signal,
         });
         await this.registerExport(options.name);

@@ -47,3 +47,12 @@ export const IMAGE_OUTLINE_RADIUS_CSS_PX = 4;
 
 export const MAX_IMAGE_DEVICE_SCALE_FACTOR = 8;
 export const IMAGE_GEOMETRY_SCALE_TOLERANCE = 0.000001;
+
+export const MAX_OUTLINE_SIZE_CSS_PX = 256;
+export const SCREENSHOT_OUTLINE_STYLE = {
+    color: IMAGE_OUTLINE_COLOR,
+    width: IMAGE_OUTLINE_WIDTH_CSS_PX,
+    padding: 0,
+    radius: IMAGE_OUTLINE_RADIUS_CSS_PX,
+    opacity: 1,
+};

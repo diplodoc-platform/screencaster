@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {z} from 'zod';
 
+import {outlineStyleSchema} from '../../shared/outline-style.js';
 import {
     ACTION_JOURNAL_BELONGS_TO_A_DIFFERENT_SOURCE_RECORDING,
     EXPORT_FRAME_MAP_IS_INCONSISTENT,
@@ -41,7 +42,7 @@ export const timelineSchema = z
             .passthrough()
             .optional(),
         annotations: z
-            .object({filters: z.array(z.string())})
+            .object({filters: z.array(z.string()), outline: outlineStyleSchema.optional()})
             .passthrough()
             .optional(),
         layout: z.literal('playwright-top-left').optional(),

@@ -8,9 +8,14 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createHash, randomUUID} from 'node:crypto';
 
-import {MAX_IMAGE_PIXELS, PRIVATE_FILE_MODE} from '../../shared/config.js';
+import {
+    MAX_IMAGE_PIXELS,
+    PRIVATE_FILE_MODE,
+    SCREENSHOT_OUTLINE_STYLE,
+} from '../../shared/config.js';
 import {scriptValue} from '../../transport/mcp/result.js';
 import {TARGET_HAS_NO_VISIBLE_BOUNDS} from '../messages.js';
+import {resolveOutlineStyle} from '../../shared/outline-style.js';
 import {renderScreenshotHighlight} from '../../shared/image-renderer.js';
 import {registerSecret} from '../../shared/sanitize-for-model.js';
 
@@ -125,7 +130,12 @@ export async function captureScreenshot(
             if (!metadata.target) {
                 throw new Error(TARGET_HAS_NO_VISIBLE_BOUNDS);
             }
-            output = await renderScreenshotHighlight(png, {...metadata, target: metadata.target});
+            metadata.outline = resolveOutlineStyle(SCREENSHOT_OUTLINE_STYLE, capture.outline);
+            output = await renderScreenshotHighlight(
+                png,
+                {...metadata, target: metadata.target},
+                metadata.outline,
+            );
         }
         await access.snapshot();
         if (capture.highlight) {

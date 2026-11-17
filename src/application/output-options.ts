@@ -1,5 +1,7 @@
 import {z} from 'zod';
 
+import {outlineStyleSchema} from '../shared/outline-style.js';
+
 import {
     DEFAULT_NARRATION_EXPORT_NAME,
     DEFAULT_VIDEO_EXPORT_NAME,
@@ -14,10 +16,14 @@ export const outputOptionsSchema = z
             .object({
                 name: z.string().regex(ARTIFACT_NAME_PATTERN).default(DEFAULT_VIDEO_EXPORT_NAME),
                 highlights: z.boolean().default(false),
+                outline: outlineStyleSchema.optional(),
             })
             .strict()
             .optional(),
-        screenshots: z.object({highlight: z.boolean().optional()}).strict().optional(),
+        screenshots: z
+            .object({highlight: z.boolean().optional(), outline: outlineStyleSchema.optional()})
+            .strict()
+            .optional(),
         narration: z
             .object({
                 name: z

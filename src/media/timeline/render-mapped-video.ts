@@ -4,10 +4,12 @@ import {
     AUDIO_ENCODER,
     OPUS_BITRATE,
     OPUS_SAMPLE_RATE,
+    OUTLINE_STYLE,
     VIDEO_ENCODER,
     VIDEO_ENCODER_THREADS,
     VIDEO_PIXEL_FORMAT,
 } from '../config.js';
+import {type OutlineStyle, resolveOutlineStyle} from '../../shared/outline-style.js';
 import {PRIVATE_FILE_MODE} from '../../shared/config.js';
 import {
     MAPPED_RENDER_CHANGED_THE_FINAL_FRAME_COUNT_RATE,
@@ -30,6 +32,7 @@ export async function renderMappedVideo(options: {
     fps: number;
     sourceFrames: FrameHashes;
     journal?: AnnotationOptions['journal'];
+    outline?: OutlineStyle;
     protection?: AnnotationOptions['protection'];
     videoWidth: number;
     videoHeight: number;
@@ -45,10 +48,12 @@ export async function renderMappedVideo(options: {
     ) {
         throw new Error(MAPPED_RENDER_REFERENCES_AN_UNAVAILABLE_SOURCE_FRAME);
     }
+    const outline = resolveOutlineStyle(OUTLINE_STYLE, options.outline);
     const annotations =
         options.journal && options.protection
             ? buildAnnotations({
                   journal: options.journal,
+                  outline,
                   protection: options.protection,
                   frameMap,
                   fps: options.fps,
@@ -57,7 +62,7 @@ export async function renderMappedVideo(options: {
                   videoHeight: options.videoHeight,
                   layout: options.layout,
               })
-            : {annotations: [], sourceTargets: [], filters: [], omitted: []};
+            : {outline, annotations: [], sourceTargets: [], filters: [], omitted: []};
     const sourceHash = await sha256(options.input, options.signal);
     const selection = frameMap
         .map((segment) => `between(n,${segment.sourceStart},${segment.sourceEnd - 1})`)

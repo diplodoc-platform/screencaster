@@ -391,13 +391,37 @@
               "type": "string",
               "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}$"
             },
-            "highlights": {"default": false, "type": "boolean"}
+            "highlights": {"default": false, "type": "boolean"},
+            "outline": {
+              "type": "object",
+              "properties": {
+                "color": {"type": "string", "pattern": "^#[0-9a-fA-F]{6}$"},
+                "width": {"type": "number", "exclusiveMinimum": 0, "maximum": 256},
+                "padding": {"type": "number", "minimum": 0, "maximum": 256},
+                "radius": {"type": "number", "minimum": 0, "maximum": 256},
+                "opacity": {"type": "number", "minimum": 0, "maximum": 1}
+              },
+              "additionalProperties": false
+            }
           },
           "additionalProperties": false
         },
         "screenshots": {
           "type": "object",
-          "properties": {"highlight": {"type": "boolean"}},
+          "properties": {
+            "highlight": {"type": "boolean"},
+            "outline": {
+              "type": "object",
+              "properties": {
+                "color": {"type": "string", "pattern": "^#[0-9a-fA-F]{6}$"},
+                "width": {"type": "number", "exclusiveMinimum": 0, "maximum": 256},
+                "padding": {"type": "number", "minimum": 0, "maximum": 256},
+                "radius": {"type": "number", "minimum": 0, "maximum": 256},
+                "opacity": {"type": "number", "minimum": 0, "maximum": 1}
+              },
+              "additionalProperties": false
+            }
+          },
           "additionalProperties": false
         },
         "narration": {

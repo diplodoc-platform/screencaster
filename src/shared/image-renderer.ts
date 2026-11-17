@@ -1,12 +1,11 @@
 import {compositeRaster, decodeRaster, drawRaster, encodePng, rasterMetadata} from './raster.js';
 import {
     IMAGE_GEOMETRY_SCALE_TOLERANCE,
-    IMAGE_OUTLINE_COLOR,
-    IMAGE_OUTLINE_RADIUS_CSS_PX,
-    IMAGE_OUTLINE_WIDTH_CSS_PX,
     MAX_IMAGE_DEVICE_SCALE_FACTOR,
     MAX_IMAGE_PIXELS,
+    SCREENSHOT_OUTLINE_STYLE,
 } from './config.js';
+import {type OutlineStyle, resolveOutlineStyle} from './outline-style.js';
 import {INVALID_IMAGE_GEOMETRY} from './messages.js';
 
 export type ImageBox = {x: number; y: number; width: number; height: number};
@@ -22,6 +21,7 @@ export type ScreenshotHighlightGeometry = {
 export async function renderScreenshotHighlight(
     png: Uint8Array,
     geometry: ScreenshotHighlightGeometry,
+    outline?: OutlineStyle,
 ): Promise<Buffer> {
     const {pixelWidth, pixelHeight, bounds, target, deviceScaleFactor} = geometry;
     if (
@@ -64,11 +64,20 @@ export async function renderScreenshotHighlight(
     ) {
         throw new Error(INVALID_IMAGE_GEOMETRY);
     }
+    const style = resolveOutlineStyle(SCREENSHOT_OUTLINE_STYLE, outline);
+    const padding = style.padding * sx;
     const overlay = drawRaster(pixelWidth, pixelHeight, (context) => {
-        context.strokeStyle = IMAGE_OUTLINE_COLOR;
-        context.lineWidth = IMAGE_OUTLINE_WIDTH_CSS_PX * sx;
+        context.strokeStyle = style.color;
+        context.globalAlpha = style.opacity;
+        context.lineWidth = style.width * sx;
         context.beginPath();
-        context.roundRect(x, y, width, height, IMAGE_OUTLINE_RADIUS_CSS_PX * sx);
+        context.roundRect(
+            x - padding,
+            y - padding,
+            width + padding * 2,
+            height + padding * 2,
+            Math.min(style.radius * sx, (width + padding * 2) / 2, (height + padding * 2) / 2),
+        );
         context.stroke();
     });
     const image = decodeRaster(png);
