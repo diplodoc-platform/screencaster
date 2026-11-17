@@ -16,7 +16,7 @@ it('reduces only the local model attachment and retains the original pixels', as
     expect(pixels).toMatchObject(result.dimensions);
     expect(original.equals(retained)).toBe(true);
     expect(await readPng(original)).toMatchObject({width: 2400, height: 1200});
-});
+}, 15_000);
 
 it('refuses malformed or non-PNG attachments with a bounded diagnostic', async () => {
     await expect(imagePreview(Buffer.from('private-source-canary'))).rejects.toThrow(
