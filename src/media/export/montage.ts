@@ -1,3 +1,5 @@
+import type {OutlineStyle} from '../../shared/outline-style.js';
+
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -120,6 +122,7 @@ export async function optimizeVideo(options: {
     journal?: string | MediaJournal;
     layout?: AnnotationOptions['layout'];
     highlights?: boolean;
+    outline?: OutlineStyle;
     signal?: AbortSignal;
 }) {
     throwIfMediaAborted(options.signal);
@@ -219,6 +222,7 @@ export async function optimizeVideo(options: {
         fps: source.fps,
         sourceFrames: source.frames,
         journal: options.highlights ? protectedInput?.journal : undefined,
+        outline: options.outline,
         protection,
         videoWidth: source.width,
         videoHeight: source.height,

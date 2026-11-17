@@ -89,10 +89,24 @@ both a checkout and an installed package, with no module path to configure.
   "outputs": {
     "video": {
       "name": "walkthrough",
-      "highlights": true
+      "highlights": true,
+      "outline": {
+        "color": "#5282FF",
+        "width": 5,
+        "padding": 15.5,
+        "radius": 18,
+        "opacity": 1
+      }
     },
     "screenshots": {
-      "highlight": true
+      "highlight": true,
+      "outline": {
+        "color": "#ff4f4f",
+        "width": 3,
+        "padding": 0,
+        "radius": 4,
+        "opacity": 1
+      }
     },
     "narration": {
       "name": "narrated",
@@ -193,6 +207,25 @@ credentials and session contents out of logs, tool arguments, and committed file
 | `outputs.narration.maxHoldSeconds` | Number from `0` through `5`.                                                     | `5`; maximum additional still-frame hold to fit speech.                                                                                   |
 | `outputs.screenshots`              | Object, including `{}`.                                                          | No screenshot defaults.                                                                                                                   |
 | `outputs.screenshots.highlight`    | `true` or `false`.                                                               | `false` behavior. `true` outlines the exact target of each screenshot call; `false` produces plain PNGs by default.                       |
+
+Both `outputs.screenshots.outline` and `outputs.video.outline` accept a partial
+style object. Setting a style does not enable highlighting; keep `highlight` or
+`highlights` enabled as appropriate.
+
+| Style field | Accepted values                                                     | Screenshot default | Video default |
+| ----------- | ------------------------------------------------------------------- | ------------------ | ------------- |
+| `color`     | Six-digit hex color (`#RRGGBB`).                                    | `#ff4f4f`          | `#5282FF`     |
+| `width`     | Number greater than 0 and at most 256 CSS pixels.                   | `3`                | `5`           |
+| `padding`   | Number from 0 through 256 CSS pixels outside the target.            | `0`                | `15.5`        |
+| `radius`    | Number from 0 through 256 CSS pixels; clamped to fit the rectangle. | `4`                | `18`          |
+| `opacity`   | Number from 0 (transparent) through 1 (opaque).                     | `1`                | `1`           |
+
+Screenshot styles scale with device pixel ratio; video styles scale with the
+recorded viewport. Off-image parts are clipped. Each screenshot/export call can
+supply `outline` to override individual configured fields. The resolved style is
+recorded in screenshot metadata or the export timeline. Narration, edits and clips
+inherit the source export's style; narration and edits can override individual
+fields with `outline`. Older exports without style metadata use the video defaults.
 
 With the example settings, a screenshot call needs only its name and a current
 observed `ref`; do not repeat `highlight: true`. An overview can explicitly pass

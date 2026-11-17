@@ -54,3 +54,5 @@ export type {
 } from './observations.js';
 
 export type {CaptureLocator} from './capture/screenshot.js';
+
+export type {OutlineStyle, ResolvedOutlineStyle} from '../shared/outline-style.js';

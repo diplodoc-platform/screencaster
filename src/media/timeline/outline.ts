@@ -1,3 +1,4 @@
+import {type OutlineStyle, resolveOutlineStyle} from '../../shared/outline-style.js';
 import {OUTLINE_STYLE} from '../config.js';
 export type OutlineBox = {x: number; y: number; width: number; height: number};
 
@@ -11,10 +12,12 @@ export function outlineGraph(
     scale: number,
     viewport: {width: number; height: number},
     enable?: string,
+    outline?: OutlineStyle,
 ): string {
-    const padding = OUTLINE_STYLE.padding * scale;
-    const stroke = OUTLINE_STYLE.width * scale;
-    const radius = OUTLINE_STYLE.radius * scale;
+    const style = resolveOutlineStyle(OUTLINE_STYLE, outline);
+    const padding = style.padding * scale;
+    const stroke = style.width * scale;
+    const radius = style.radius * scale;
     const x = Math.max(0, Math.floor(box.x - padding - stroke / 2 - 1));
     const y = Math.max(0, Math.floor(box.y - padding - stroke / 2 - 1));
     const width = box.width + padding * 2;
@@ -29,13 +32,13 @@ export function outlineGraph(
     );
     const r = Math.min(radius, width / 2, height / 2);
     const [red, green, blue] = [1, 3, 5].map((offset) =>
-        Number.parseInt(OUTLINE_STYLE.color.slice(offset, offset + 2), 16),
+        Number.parseInt(style.color.slice(offset, offset + 2), 16),
     );
     const alpha = [
         `st(0,abs(X+0.5-${box.x + box.width / 2 - x})-${width / 2 - r})`,
         `st(1,abs(Y+0.5-${box.y + box.height / 2 - y})-${height / 2 - r})`,
         `st(2,hypot(max(ld(0),0),max(ld(1),0))+min(max(ld(0),ld(1)),0)-${r})`,
-        `255*clip(${stroke / 2 + 0.5}-abs(ld(2)),0,1)`,
+        `255*${style.opacity}*clip(${stroke / 2 + 0.5}-abs(ld(2)),0,1)`,
     ].join(';');
     const mask = `${output}Mask`;
     return (

@@ -1,3 +1,5 @@
+import type {OutlineStyle} from '../../shared/outline-style.js';
+
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {constants} from 'node:fs';
@@ -41,6 +43,7 @@ export async function editVideo(options: {
     output: string;
     cuts: EditorialCut[];
     highlights?: boolean;
+    outline?: OutlineStyle;
     signal?: AbortSignal;
 }) {
     return renderSelectedExport(options, 'remove');
@@ -120,6 +123,7 @@ export async function renderSelectedExport(
         videoWidth: input.frames.width,
         videoHeight: input.frames.height,
         journal: exportHighlights(input, options.highlights) ? input.journal : undefined,
+        outline: {...input.timeline.annotations?.outline, ...options.outline},
         protection: input.timeline.protection,
         layout: input.timeline.layout,
         audioFile,

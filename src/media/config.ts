@@ -14,7 +14,7 @@ export const MAX_PREVIEW_PIXELS = 1.15 * 1024 * 1024;
 export const MAX_MEDIA_ACTIVITIES = 50000;
 export const TARGET_HOLD_SECONDS = 0.9;
 export const FINAL_FRAME_HOLD_SECONDS = 1;
-export const OUTLINE_STYLE = {color: '#5282FF', width: 5, padding: 15.5, radius: 18};
+export const OUTLINE_STYLE = {color: '#5282FF', width: 5, padding: 15.5, radius: 18, opacity: 1};
 export const FFMPEG_ERRORS = {
     timeout: 'FFmpeg processing timed out; partial export and raw retained',
     start: 'FFmpeg could not start; configure FFMPEG_PATH',

@@ -42,3 +42,5 @@ export {readFrames, sha256} from './recording/recording.js';
 export {writeEditorialAudio} from './recording/pcm.js';
 
 export * from './illustration/index.js';
+
+export type {OutlineStyle, ResolvedOutlineStyle} from '../shared/outline-style.js';

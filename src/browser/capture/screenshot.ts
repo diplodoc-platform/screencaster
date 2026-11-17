@@ -1,7 +1,9 @@
+import type {ResolvedOutlineStyle} from '../../shared/outline-style.js';
 import type {PreparedScreenshotCapturePolicy} from './capture-policy.js';
 
 import {z} from 'zod';
 
+import {outlineStyleSchema} from '../../shared/outline-style.js';
 import {ARIA_REF_ARGUMENT_PATTERN as SCREENSHOT_REF_PATTERN} from '../patterns.js';
 import {driverScript} from '../scripts/driver-script.js';
 
@@ -47,6 +49,7 @@ export const screenshotOptionsSchema = z
     .object({
         ref: z.string().regex(SCREENSHOT_REF_PATTERN).optional(),
         highlight: z.boolean().optional(),
+        outline: outlineStyleSchema.optional(),
         area: z.enum(['viewport', 'page', 'element']).default('viewport'),
         ready: z.array(captureLocatorSchema).max(MAX_CAPTURE_LOCATORS).default([]),
         notReady: z.array(captureLocatorSchema).max(MAX_CAPTURE_LOCATORS).default([]),
@@ -70,6 +73,7 @@ export type ScreenshotMetadata = {
     pixelWidth: number;
     pixelHeight: number;
     original: {path: string; sha256: string};
+    outline?: ResolvedOutlineStyle;
     privacy: {
         redaction: 'not-configured' | 'configured-dom-values-verified';
         visualReviewRequired: true;
