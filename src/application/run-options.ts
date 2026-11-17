@@ -1,11 +1,12 @@
 import {z} from 'zod';
 
-export const browserRunSchema = z
-    .object({
+import {browserPreferencesSchema} from '../browser/preferences.js';
+
+export const browserRunSchema = browserPreferencesSchema
+    .extend({
         url: z.string().url(),
         video: z.boolean().optional(),
         headless: z.boolean().optional(),
-        locale: z.string().optional(),
         viewport: z
             .object({width: z.number().int().positive(), height: z.number().int().positive()})
             .strict()

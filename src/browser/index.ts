@@ -54,3 +54,5 @@ export type {
 } from './observations.js';
 
 export type {CaptureLocator} from './capture/screenshot.js';
+
+export type {BrowserPreferences} from './preferences.js';
