@@ -10,7 +10,7 @@ function fixture(options: Partial<RequestGuardOptions> = {}) {
     let route: (value: unknown) => Promise<void> = async () => {
         throw new Error('Guard route was not installed');
     };
-    let socket: (value: unknown) => void;
+    let socket: (value: unknown) => void | Promise<void>;
     const contextEvents = new Map<string, (value: unknown) => void>();
     const pageEvents = new Map<string, (value: unknown) => void>();
     const context = {
@@ -122,6 +122,19 @@ it('closes popup pages and cancels downloads for the entire owned context', asyn
     const download = await guard.intercept({disposition: 'attachment; filename=private.csv'});
     expect(download.fulfill).not.toHaveBeenCalled();
     expect(download.abort).toHaveBeenCalledTimes(1);
+});
+
+it('records a failed WebSocket close without exposing transport errors', async () => {
+    const guard = fixture({strictViolations: false});
+    await guard.install();
+    const closing = Promise.reject(new Error('Cookie: private-socket-canary'));
+    // Observe the test-owned rejection even if the guard fails to handle it.
+    closing.catch(() => {});
+
+    await guard.socket({close: () => closing});
+
+    expect(await guard.health()).toBe('REQUEST_GUARD_FAILED:dispatch:policy-socket');
+    expect(JSON.stringify(guard.context)).not.toContain('private-socket-canary');
 });
 
 it('preserves the legacy guard behavior without requiring popup/download APIs', async () => {

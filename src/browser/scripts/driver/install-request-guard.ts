@@ -156,10 +156,15 @@ export default async function script(page: ScriptPage, input: Input) {
             }
         }
     });
-    await context.routeWebSocket('**/*', (socket) => {
+    await context.routeWebSocket('**/*', async (socket) => {
         blocked.sockets++;
         deny('policy-socket');
-        socket.close();
+        try {
+            await socket.close();
+        } catch {
+            context.__docsRequestGuardFailures = (context.__docsRequestGuardFailures ?? 0) + 1;
+            context.__docsRequestGuardFailure ??= {phase: 'dispatch', category: 'policy-socket'};
+        }
     });
     return 'REQUEST_GUARD_INSTALLED';
 }
