@@ -179,7 +179,7 @@ export function decodeEvidenceObservation(
 }
 
 export class EvidenceFailureLog {
-    private batch: z.infer<typeof batchSchema> = {events: [], omitted: 0};
+    private readonly batch: z.infer<typeof batchSchema> = {events: [], omitted: 0};
     private readonly file?: string;
 
     constructor(file?: string) {

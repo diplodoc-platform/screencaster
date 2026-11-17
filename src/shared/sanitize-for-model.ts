@@ -124,7 +124,7 @@ export function sanitizeSnapshotForModel(snapshot: string): string {
             inInputField = true;
             const afterLabel = inputLabelEnd(line, role[0].length);
             const separator = INPUT_VALUE_SEPARATOR_PATTERN.exec(line.slice(afterLabel));
-            if (!separator || separator.index === undefined) {
+            if (separator?.index === undefined) {
                 return line;
             }
             return `${line.slice(0, afterLabel + separator.index)}: [REDACTED]`;

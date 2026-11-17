@@ -62,10 +62,9 @@ export function buildFrameMap(frameRefs: ArrayLike<number>): FrameMapSegment[] {
                 outputEnd: index + 1,
             });
         } else {
-            const previous = map[map.length - 1];
+            const previous = map.at(-1);
             if (
-                previous &&
-                previous.sourceEnd === frame &&
+                previous?.sourceEnd === frame &&
                 previous.outputEnd - previous.outputStart ===
                     previous.sourceEnd - previous.sourceStart
             ) {

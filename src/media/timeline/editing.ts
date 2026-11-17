@@ -260,8 +260,7 @@ function verifiedRedundantGesture(
         .find((action) => action.kind === 'interaction');
     const repeated = actions[first];
     if (
-        !previous ||
-        previous.id !== repeatOfActionId ||
+        previous?.id !== repeatOfActionId ||
         previous.step !== repeated.step ||
         previous.outcome !== 'returned' ||
         previous.id === undefined ||

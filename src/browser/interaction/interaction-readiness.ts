@@ -35,7 +35,7 @@ type ObserveReadiness = (code: string, timeoutMs?: number) => Promise<McpResult>
 // That rendering layer is not an external obstruction; pointer checks stay intact.
 export function codeEditorOwnsTextReceiver(el: HTMLElement, hit: Element): boolean {
     const editor = el.tagName === 'TEXTAREA' ? el.closest('.monaco-editor') : null;
-    return Boolean(editor && editor.contains(hit));
+    return Boolean(editor?.contains(hit));
 }
 
 export class InteractionBlockedError extends ToolDispatchRejectedError {

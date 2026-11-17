@@ -227,7 +227,7 @@ export class CaptureRun {
     beginStep(id: number) {
         this.assertIdle();
         const step = this.manifest.steps.find((entry) => entry.id === id);
-        if (!step || step.status !== 'pending' || this.stepId !== undefined || this.finished) {
+        if (step?.status !== 'pending' || this.stepId !== undefined || this.finished) {
             throw new Error(ONLY_A_PENDING_REGISTERED_STEP_CAN_BE_STARTED);
         }
         step.status = 'running';

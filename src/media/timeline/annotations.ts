@@ -348,7 +348,7 @@ export async function extractStepScreenshots(
     fs.mkdirSync(options.outDir, {recursive: true, mode: PRIVATE_DIRECTORY_MODE});
     for (const step of options.journal.steps) {
         const targets = plan.sourceTargets.filter((entry) => entry.step === step.id);
-        const target = targets[targets.length - 1];
+        const target = targets.at(-1);
         const prefix = `step-${String(step.id).padStart(3, '0')}`;
         if (target) {
             const file = `${prefix}.png`;
@@ -376,7 +376,7 @@ export async function extractStepScreenshots(
                 action.kind === 'evidence' &&
                 action.outcome === 'returned',
         );
-        const evidence = observations[observations.length - 1];
+        const evidence = observations.at(-1);
         if (!evidence) {
             screenshotOmissions.push({
                 step: step.id,

@@ -42,7 +42,7 @@ export class McpStdioClient {
     private proc: ChildProcess | null = null;
     private rl: Interface | null = null;
     private nextId = 1;
-    private pending = new Map<
+    private readonly pending = new Map<
         number,
         {resolve: (v: unknown) => void; reject: (e: Error) => void}
     >();

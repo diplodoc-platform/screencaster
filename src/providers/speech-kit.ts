@@ -37,9 +37,8 @@ export class SpeechKitError extends Error {
     readonly status: number | undefined;
 
     constructor(phase: SpeechKitPhase, status?: number) {
-        super(
-            `SpeechKit synthesis failed at ${phase}${status === undefined ? '' : ` (HTTP ${status})`}; cached phrases retained`,
-        );
+        const statusText = status === undefined ? '' : ` (HTTP ${status})`;
+        super(`SpeechKit synthesis failed at ${phase}${statusText}; cached phrases retained`);
         this.name = 'SpeechKitError';
         this.phase = phase;
         this.status = status;

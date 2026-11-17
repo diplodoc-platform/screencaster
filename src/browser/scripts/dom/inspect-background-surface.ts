@@ -29,8 +29,8 @@ export default async function inspectBackgroundSurface(el: HTMLElement, structur
     if (!hasBackgroundGeometry(el, rect, style, entry)) {
         return null;
     }
-    const borderLeft = parseFloat(style.borderLeftWidth) || 0;
-    const borderTop = parseFloat(style.borderTopWidth) || 0;
+    const borderLeft = Number.parseFloat(style.borderLeftWidth) || 0;
+    const borderTop = Number.parseFloat(style.borderTopWidth) || 0;
     const left = Math.max(clip.left, rect.left + borderLeft, 0) + 2;
     const top = Math.max(clip.top, rect.top + borderTop, 0) + 2;
     const right =

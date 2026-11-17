@@ -80,8 +80,7 @@ export default async function script(page: ScriptPage, input: Input) {
                         arguments: [{value: x}, {value: y}],
                         returnByValue: true,
                     });
-                    exact =
-                        !result.exceptionDetails && result.result && result.result.value === true;
+                    exact = !result.exceptionDetails && result.result?.value === true;
                 } finally {
                     await session.send('Runtime.releaseObject', {objectId});
                 }
