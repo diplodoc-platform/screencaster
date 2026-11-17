@@ -388,7 +388,7 @@
     "esbuild": "^0.27.7",
     "prettier": "^3.9.10",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.4"
+    "vitest": "^5.0.5"
   },
   "engines": {
     "node": ">=24",
