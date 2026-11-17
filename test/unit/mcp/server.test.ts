@@ -89,6 +89,7 @@ it('opens from host defaults, accepts explicit browser overrides and excludes ho
             viewport: {width: 1440, height: 1000},
             deviceScaleFactor: 2,
             locale: 'ru-RU',
+            colorScheme: 'dark',
         },
         storageStatePath: '/tmp/private-state.json',
     });
@@ -102,6 +103,7 @@ it('opens from host defaults, accepts explicit browser overrides and excludes ho
         viewport: {width: 1440, height: 1000},
         deviceScaleFactor: 2,
         locale: 'ru-RU',
+        colorScheme: 'dark',
         headless: true,
         storageStatePath: '/tmp/private-state.json',
     });
@@ -111,6 +113,8 @@ it('opens from host defaults, accepts explicit browser overrides and excludes ho
             await call('screencaster_open', {
                 url: 'https://service.test/other',
                 headless: false,
+                locale: 'en-US',
+                colorScheme: 'light',
                 viewport: {width: 800, height: 600},
             })
         ).isError,
@@ -119,7 +123,8 @@ it('opens from host defaults, accepts explicit browser overrides and excludes ho
         url: 'https://service.test/other',
         headless: false,
         viewport: {width: 800, height: 600},
-        locale: 'ru-RU',
+        locale: 'en-US',
+        colorScheme: 'light',
     });
     await call('screencaster_finish');
     expect((await call('screencaster_open', {storageStatePath: '/tmp/forged.json'})).isError).toBe(

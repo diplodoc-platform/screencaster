@@ -1,3 +1,4 @@
+import type {BrowserPreferences} from './preferences.js';
 import type {McpResult} from '../transport/mcp/types.js';
 import type {MediaActivity, MediaClock} from '../media/recording/journal.js';
 import type {BrowserObserver} from './observations.js';
@@ -33,6 +34,7 @@ import {PartialFormFillError} from './errors/partial-form-fill-error.js';
 import {ActionObservationError} from './errors/action-observation-error.js';
 import {NavigationDialogPendingError} from './errors/navigation-dialog-pending-error.js';
 import {BrowserRuntime} from './runtime.js';
+import {browserPreferencesSchema} from './preferences.js';
 import {authenticateWithHost} from './host-auth.js';
 import {prepareScreenshotCapturePolicy} from './capture/capture-policy.js';
 import {HostAuthenticationChallengeError} from './errors/host-auth-challenge-error.js';
@@ -41,7 +43,7 @@ import {BrowserActionError} from './outcome.js';
 import {backgroundClickArgs} from './interaction/background-click.js';
 import {inputVerificationArgs} from './interaction/input-evidence.js';
 
-export type BrowserSessionOptions = {
+export type BrowserSessionOptions = BrowserPreferences & {
     url: string;
     policy?: BrowserPolicy;
     headless?: boolean;
@@ -51,7 +53,6 @@ export type BrowserSessionOptions = {
     signal?: AbortSignal;
     viewport?: {width: number; height: number};
     deviceScaleFactor?: number;
-    locale?: string;
     videoDir?: string;
     observers?: readonly BrowserObserver[];
     onActivity?: (activity?: MediaActivity) => void;
@@ -74,6 +75,7 @@ export class BrowserSession extends BrowserRuntime {
     private latestActivity?: MediaActivity;
 
     constructor(options: BrowserSessionOptions) {
+        browserPreferencesSchema.parse({locale: options.locale, colorScheme: options.colorScheme});
         const screenshotPolicy = options.screenshotPolicy
             ? prepareScreenshotCapturePolicy(options.screenshotPolicy)
             : undefined;

@@ -362,10 +362,11 @@
     "browser": {
       "type": "object",
       "properties": {
+        "locale": {"type": "string", "minLength": 1},
+        "colorScheme": {"type": "string", "enum": ["light", "dark", "no-preference"]},
         "url": {"type": "string", "format": "uri"},
         "video": {"type": "boolean"},
         "headless": {"type": "boolean"},
-        "locale": {"type": "string"},
         "viewport": {
           "type": "object",
           "properties": {

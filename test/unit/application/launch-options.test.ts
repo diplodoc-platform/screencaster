@@ -94,6 +94,8 @@ it('requires the configured state variable, but permits an explicit CLI override
 it.each([
     {password: 'private-marker'},
     {version: 2},
+    {browser: {colorScheme: 'private-marker'}},
+    {browser: {locale: ''}},
     {browser: {viewport: {width: 0, height: 1000}}},
     {browser: {authentication: {password: 'private-marker'}}},
     {outputs: {video: {name: '../private-marker'}}},
