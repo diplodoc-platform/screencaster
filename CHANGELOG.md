@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/diplodoc-platform/screencaster/compare/v0.2.0...v0.2.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* added Trusted Publishing ([#13](https://github.com/diplodoc-platform/screencaster/issues/13)) ([9bf4f69](https://github.com/diplodoc-platform/screencaster/commit/9bf4f69aa6f21f7c27dba3052feeafb075dcf61b))
+
 ## [0.2.0](https://github.com/diplodoc-platform/screencaster/compare/v0.1.0...v0.2.0) (2026-11-17)
 
 
