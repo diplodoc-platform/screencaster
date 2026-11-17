@@ -1,6 +1,6 @@
 {
   "name": "@diplodoc/screencaster",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Browser guide media generation for documentation",
   "license": "MIT",
   "type": "module",
