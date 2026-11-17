@@ -42,11 +42,10 @@ export default function inspectElement(
             : undefined;
     const rect = entry?.boundingClientRect || el.getBoundingClientRect();
     const intersection = entry?.intersectionRect;
-    const role =
-        rawRole && Object.prototype.hasOwnProperty.call(roles, rawRole) ? roles[rawRole] : 'other';
+    const role = rawRole && Object.hasOwn(roles, rawRole) ? roles[rawRole] : 'other';
     return {
         connected: el.isConnected,
-        tag: Object.prototype.hasOwnProperty.call(tags, el.tagName) ? tags[el.tagName] : 'other',
+        tag: Object.hasOwn(tags, el.tagName) ? tags[el.tagName] : 'other',
         role: rawRole ? role : 'none',
         childCount: Math.min(MAX_GEOMETRY_MAGNITUDE, el.childElementCount),
         isEditable: (el as HTMLElement).isContentEditable === true,

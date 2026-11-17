@@ -14,7 +14,7 @@ export class EvidenceUnavailableError extends Error {
         reason: EvidenceFailureReason = 'predicate-false',
         blockerLabels: readonly string[] = [],
     ) {
-        const safeReason = Object.prototype.hasOwnProperty.call(explanations, reason)
+        const safeReason = Object.hasOwn(explanations, reason)
             ? (reason as keyof typeof explanations)
             : 'predicate-false';
         const base = `Scroll target visibility could not be established (${safeReason}). ${explanations[safeReason]}`;

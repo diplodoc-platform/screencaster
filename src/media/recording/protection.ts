@@ -68,7 +68,7 @@ export async function markerRanges(
                     g2 > MARKER_BRIGHT_CHANNEL_MIN &&
                     b2 < MARKER_DARK_CHANNEL_MAX
                 ) {
-                    const previous = ranges[ranges.length - 1];
+                    const previous = ranges.at(-1);
                     if (previous?.end === index) {
                         previous.end++;
                     } else {

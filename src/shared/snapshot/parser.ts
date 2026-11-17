@@ -53,7 +53,7 @@ export function snapshotWithoutTransientAttributes(snapshot: string): string {
     for (const node of snapshotNodes(lines)) {
         const line = lines[node.index];
         const header = nodeHeader.exec(line);
-        if (!header || !header[1]) {
+        if (!header?.[1]) {
             continue;
         }
         const attributes = header[1]

@@ -225,7 +225,7 @@ function phraseAnchors(
     let anchor: number | undefined;
     if (phrase.startMs === undefined) {
         const action = input.journal?.actions.find((entry) => entry.id === phrase.actionId);
-        if (!action || action.outcome !== 'returned' || !input.timeline.protection) {
+        if (action?.outcome !== 'returned' || !input.timeline.protection) {
             throw new Error(NARRATION_REQUIRES_A_CONFIRMED_RECORDED_ACTION_ANCHOR);
         }
         const observed = action.target?.atMs ?? action.startMs;
