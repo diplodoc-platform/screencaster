@@ -56,3 +56,4 @@ export type {
 export type {CaptureLocator} from './capture/screenshot.js';
 
 export type {OutlineStyle, ResolvedOutlineStyle} from '../shared/outline-style.js';
+export type {BrowserPreferences} from './preferences.js';

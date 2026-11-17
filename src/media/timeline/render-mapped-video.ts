@@ -9,7 +9,7 @@ import {
     VIDEO_ENCODER_THREADS,
     VIDEO_PIXEL_FORMAT,
 } from '../config.js';
-import {resolveOutlineStyle} from '../../shared/outline-style.js';
+import {type OutlineStyle, resolveOutlineStyle} from '../../shared/outline-style.js';
 import {PRIVATE_FILE_MODE} from '../../shared/config.js';
 import {
     MAPPED_RENDER_CHANGED_THE_FINAL_FRAME_COUNT_RATE,
@@ -32,7 +32,7 @@ export async function renderMappedVideo(options: {
     fps: number;
     sourceFrames: FrameHashes;
     journal?: AnnotationOptions['journal'];
-    outline?: AnnotationOptions['outline'];
+    outline?: OutlineStyle;
     protection?: AnnotationOptions['protection'];
     videoWidth: number;
     videoHeight: number;

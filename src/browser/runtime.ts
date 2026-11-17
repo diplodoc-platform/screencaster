@@ -153,6 +153,7 @@ import {
 } from './interaction/input-evidence.js';
 import {revealTargetCode} from './interaction/reveal-target.js';
 import {BrowserObservations} from './observations.js';
+import {type BrowserPreferences, browserPreferencesSchema} from './preferences.js';
 import {assertInputFile} from './interaction/input-file.js';
 
 const CANCEL_TRANSITION_DIALOG_HINT = [
@@ -170,7 +171,7 @@ export type PageCheckpoint = {
     role: 'heading' | 'dialog' | 'menu' | 'button' | 'link';
     name: string;
 };
-export type RuntimeStartOptions = StartSessionParams & {userAgent?: string; locale?: string};
+export type RuntimeStartOptions = StartSessionParams & BrowserPreferences & {userAgent?: string};
 export type BrowserRuntimeOptions = {
     policy: BrowserPolicy;
     artifactDirectory?: string;
@@ -266,6 +267,7 @@ export class BrowserRuntime {
     }
 
     async start(opts: RuntimeStartOptions = {}) {
+        browserPreferencesSchema.parse({locale: opts.locale, colorScheme: opts.colorScheme});
         if (
             opts.videoDir &&
             (this.runtimeOptions.screenshotPolicy?.redaction ||
@@ -847,6 +849,7 @@ export class BrowserRuntime {
                     deviceScaleFactor: this.runtimeOptions.deviceScaleFactor ?? 1,
                     ...(opts.userAgent ? {userAgent: opts.userAgent} : {}),
                     ...(opts.locale ? {locale: opts.locale} : {}),
+                    ...(opts.colorScheme ? {colorScheme: opts.colorScheme} : {}),
                     ...(this.policy.guardOptions ? {serviceWorkers: 'block'} : {}),
                     ...(opts.storageStatePath
                         ? {storageState: path.resolve(opts.storageStatePath)}

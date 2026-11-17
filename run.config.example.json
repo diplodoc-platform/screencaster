@@ -34,7 +34,8 @@
       "width": 1440,
       "height": 1000
     },
-    "deviceScaleFactor": 1
+    "deviceScaleFactor": 1,
+    "colorScheme": "light"
   },
   "policy": {
     "rules": [

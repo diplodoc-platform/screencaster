@@ -72,7 +72,8 @@ both a checkout and an installed package, with no module path to configure.
       "width": 1440,
       "height": 1000
     },
-    "deviceScaleFactor": 1
+    "deviceScaleFactor": 1,
+    "colorScheme": "light"
   },
   "policy": {
     "rules": [
@@ -184,15 +185,29 @@ credentials and session contents out of logs, tool arguments, and committed file
 
 ## Browser settings
 
-| Field                       | Accepted values                                           | When omitted                                                                                                                                                                              |
-| --------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `browser.url`               | Absolute HTTP(S) target URL without embedded credentials. | Must be supplied to `screencaster_open`. Access also depends on the policy and authentication allowlist.                                                                                  |
-| `browser.headless`          | `true` or `false`.                                        | `true`: no visible capture window. `false`: visible capture window. Independent of the login window.                                                                                      |
-| `browser.video`             | `true` or `false`.                                        | Recording off unless `outputs.video` is present. `true` alone records raw video for manual export; `false` conflicts with `outputs.video`.                                                |
-| `browser.locale`            | Locale string, e.g. `en-US` or `ru-RU`.                   | No locale override; browser-driver default. The config schema accepts strings, but the browser must support the locale. This does not change an application's stored language preference. |
-| `browser.viewport.width`    | Positive integer, CSS pixels.                             | `1280` when the whole viewport is omitted.                                                                                                                                                |
-| `browser.viewport.height`   | Positive integer, CSS pixels.                             | `720` when the whole viewport is omitted. Both dimensions are required when `viewport` is supplied.                                                                                       |
-| `browser.deviceScaleFactor` | Positive finite number, e.g. `1` or `2`.                  | `1`. PNG device pixels scale with this value; video recording size follows the viewport.                                                                                                  |
+| Field                       | Accepted values                                           | When omitted                                                                                                                                                                                                                                                            |
+| --------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `browser.url`               | Absolute HTTP(S) target URL without embedded credentials. | Must be supplied to `screencaster_open`. Access also depends on the policy and authentication allowlist.                                                                                                                                                                |
+| `browser.headless`          | `true` or `false`.                                        | `true`: no visible capture window. `false`: visible capture window. Independent of the login window.                                                                                                                                                                    |
+| `browser.video`             | `true` or `false`.                                        | Recording off unless `outputs.video` is present. `true` alone records raw video for manual export; `false` conflicts with `outputs.video`.                                                                                                                              |
+| `browser.locale`            | Nonempty locale string, e.g. `en-US` or `ru-RU`.          | No locale override; browser-driver default. Sets `navigator.language`, `Accept-Language`, and locale-sensitive formatting. The browser must support the locale.                                                                                                         |
+| `browser.colorScheme`       | `light`, `dark`, or `no-preference`.                      | No color-scheme override; browser-driver default. Sets the CSS `prefers-color-scheme` preference. `no-preference` leaves the effective theme to the browser/environment; it does not guarantee a light theme. Use explicit `light` or `dark` for reproducible captures. |
+| `browser.viewport.width`    | Positive integer, CSS pixels.                             | `1280` when the whole viewport is omitted.                                                                                                                                                                                                                              |
+| `browser.viewport.height`   | Positive integer, CSS pixels.                             | `720` when the whole viewport is omitted. Both dimensions are required when `viewport` is supplied.                                                                                                                                                                     |
+| `browser.deviceScaleFactor` | Positive finite number, e.g. `1` or `2`.                  | `1`. PNG device pixels scale with this value; video recording size follows the viewport.                                                                                                                                                                                |
+
+Language and theme apply to the owned capture context before its first navigation,
+including screenshots and recordings. To switch them, change `browser.locale`
+and/or `browser.colorScheme` and start a new run. For example, use `ru-RU` and
+`dark` for a Russian dark-theme capture, or `en-US` and `light` for an English
+light-theme capture. `screencaster_open` can override these defaults per new run;
+`BrowserSession` and `CaptureRun.create` accept the same fields directly.
+
+These preferences affect sites that follow browser language and CSS media queries.
+An application's account settings, cookies, URL language or explicit theme can take
+precedence. Screencaster does not translate page content or modify stored account
+preferences. The host authentication browser has its own settings. Existing config
+files without these fields keep their previous behavior.
 
 ## Output settings
 
