@@ -15,11 +15,6 @@ it.skipIf(process.platform === 'win32')(
         let child: ReturnType<typeof spawn> | undefined;
         let closed: Promise<number | null> | undefined;
         try {
-            await fs.symlink(
-                path.join(root, 'node_modules'),
-                path.join(directory, 'node_modules'),
-                'junction',
-            );
             await Promise.all(
                 ['src', 'examples', 'scripts'].map((name) => fs.mkdir(path.join(directory, name))),
             );

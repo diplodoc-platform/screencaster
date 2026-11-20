@@ -1,10 +1,12 @@
 import {spawn} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 
 // npm run watch builds first, so example imports can resolve package declarations.
+const tsc = fileURLToPath(import.meta.resolve('typescript/bin/tsc'));
 const commands = [
-    ['node_modules/typescript/bin/tsc', '-p', 'tsconfig.json', '--watch'],
+    [tsc, '-p', 'tsconfig.json', '--watch'],
     ['scripts/build-browser-scripts.mjs', '--watch'],
-    ['node_modules/typescript/bin/tsc', '-p', 'examples/tsconfig.build.json', '--watch'],
+    [tsc, '-p', 'examples/tsconfig.build.json', '--watch'],
 ];
 let stopping = false;
 const children = commands.map((args) => spawn(process.execPath, args, {stdio: 'inherit'}));
