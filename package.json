@@ -408,7 +408,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@napi-rs/canvas": "^1.1.1",
-    "@playwright/mcp": "^0.0.63",
+    "@playwright/mcp": "^0.0.86",
     "ajv": "^8.20.0",
     "image-size": "^2.1.0",
     "jpeg-js": "^0.4.4",
