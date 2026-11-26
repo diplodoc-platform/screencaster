@@ -10,3 +10,11 @@ node_modules
 /run.config.json
 /examples/private-adapters
 /runs
+
+.idea
+.vscode
+.history
+/lib
+/dist
+/cache
+/external

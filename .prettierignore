@@ -11,3 +11,12 @@ package-lock.json
 !.env.example
 
 /CHANGELOG.md
+
+.idea
+.vscode
+.history
+.DS_Store
+/lib
+/dist
+/cache
+/external
