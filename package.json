@@ -381,7 +381,7 @@
     "docs:check": "npm run build && node scripts/generate-configuration.mjs --check"
   },
   "devDependencies": {
-    "@diplodoc/infra": "2.3.0",
+    "@diplodoc/infra": "2.4.0",
     "@types/node": "^24.13.3",
     "@types/pngjs": "^6.0.5",
     "@vitest/coverage-v8": "^4.1.12",

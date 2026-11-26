@@ -12,3 +12,17 @@ node_modules
 !.env.example
 
 /coverage
+
+.idea
+.vscode
+.history
+.DS_Store
+/lib
+/dist
+/cache
+/external
+.lintstagedrc.js
+.eslintrc.js
+.prettierrc.js
+.stylelintrc.js
+esbuild/**/*.mjs
